@@ -6,6 +6,11 @@ backend/*.json
 **/.env.*
 !**/.env.example
 
+# ── Firebase / Supabase real config (use *.example.js instead) ────────────────
+frontend/js/firebase-config.js
+frontend/js/supabase-config.js
+
+
 # ── Backend (pushed separately) ────────────────────────────────────────────────
 backend/
 
