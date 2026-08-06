@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hospital Dashboard — Swasthya Sathi</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom CSS Design Tokens -->
+  <link rel="stylesheet" href="../css/custom.css">
+  <style>
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+  </style>
+</head>
+<body class="relative bg-white dark:bg-black text-black dark:text-white transition-colors duration-150 antialiased min-h-screen flex flex-col">
+
+  <!-- Main Portal Shell Grid -->
+  <div class="flex-1 flex flex-col md:flex-row min-h-screen relative overflow-hidden">
+
+    <!-- ── Floating Translucent Glass Sidebar ─────────────────────────────── -->
+    <aside id="sidebar" class="w-full md:w-72 p-4 md:p-6 flex-shrink-0 z-40 transition-transform duration-300 transform -translate-x-full md:translate-x-0 fixed md:relative inset-y-0 left-0 border-r border-black/10 dark:border-white/10 flex flex-col justify-between bg-white/80 dark:bg-black/80 backdrop-blur-xl">
+      <div>
+        <!-- Sidebar Brand Logo -->
+        <div class="flex items-center justify-between mb-8 px-2">
+          <a href="../index.html" class="flex items-center gap-3 group">
+            <div class="w-10 h-10 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center">
+              <i class="fa-solid fa-hospital text-lg"></i>
+            </div>
+            <span class="font-heading font-extrabold text-xl tracking-tight">
+              Swasthya<span class="font-light opacity-70">Sathi</span>
+            </span>
+          </a>
+          <button id="close-sidebar-btn" class="md:hidden opacity-60 hover:opacity-100">
+            <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+
+        <!-- User Profile Quick Badge -->
+        <div class="flat-panel p-4 mb-6 rounded-2xl flex items-center gap-3">
+          <div id="user-avatar" class="w-12 h-12 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center font-heading font-bold text-lg flex-shrink-0">
+            <i class="fas fa-hospital"></i>
+          </div>
+          <div class="overflow-hidden">
+            <h4 id="hosp-name" class="font-heading font-bold text-sm truncate">Loading...</h4>
+            <p id="active-patients-badge" class="text-xs font-mono opacity-60 truncate">0 Active Patients</p>
+          </div>
+        </div>
+
+        <!-- Sidebar Navigation Pills -->
+        <nav class="space-y-1.5" id="nav-tabs">
+          <button id="nav-registry" class="nav-btn active w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left">
+            <i class="fas fa-users text-base w-5"></i>
+            <span>Patient Registry</span>
+          </button>
+          <button id="nav-doctors" class="nav-btn w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left">
+            <div class="flex items-center gap-3">
+               <i class="fas fa-user-md text-base w-5"></i>
+               <span>Doctor Directory</span>
+            </div>
+            <span id="pending-doctors-badge" class="hidden px-2 py-0.5 text-[10px] rounded-full border border-black/20 dark:border-white/20 bg-amber-500/10 text-amber-600">0</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Bottom Actions: Theme Toggle & Sign Out -->
+      <div class="pt-6 border-t border-black/10 dark:border-white/10 space-y-2">
+        <button id="theme-toggle" class="btn-translucent w-full py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2">
+          <span class="dark:hidden flex items-center gap-2"><i class="fa-solid fa-moon"></i> Dark Theme</span>
+          <span class="hidden dark:flex items-center gap-2"><i class="fa-solid fa-sun"></i> Light Theme</span>
+        </button>
+        <button id="logout-btn" class="btn-translucent w-full py-2.5 px-4 rounded-xl text-xs text-red-600 dark:text-red-400 flex items-center justify-center gap-2 border-red-500/20">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── Main Workspace Area ───────────────────────────────────────────── -->
+    <main class="flex-1 flex flex-col p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto overflow-y-auto">
+      
+      <!-- Top Mobile & Header Pill Bar -->
+      <header class="flex items-center justify-between mb-8 gap-4">
+        <div class="flex items-center gap-3">
+          <button id="mobile-sidebar-toggle" class="md:hidden w-10 h-10 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div>
+            <h1 id="view-title" class="font-heading font-extrabold text-2xl sm:text-3xl tracking-tight">Patient Registry</h1>
+            <p class="text-xs sm:text-sm opacity-60">Hospital Dashboard</p>
+          </div>
+        </div>
+      </header>
+
+      <!-- Tab 1: Patient Registry -->
+      <div id="tab-registry" class="tab-content active space-y-6">
+        
+        <!-- Search Bar -->
+        <div class="flat-panel p-4 rounded-3xl">
+          <form id="search-form" class="flex flex-col sm:flex-row gap-4 items-center">
+            <div class="flex-1 relative w-full">
+              <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 opacity-50"></i>
+              <input type="text" id="patient-search" placeholder="Search by Phone or Health ID..." class="w-full pl-12 pr-4 py-3 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:border-black/30 dark:focus:border-white/30 transition-colors" required>
+            </div>
+            <button type="submit" id="search-btn" class="btn-primary w-full sm:w-auto px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
+              <span>Search</span>
+            </button>
+          </form>
+        </div>
+
+        <div id="search-loading" class="hidden text-center py-8 opacity-60">
+          <i class="fas fa-spinner fa-spin text-3xl"></i>
+          <p class="mt-2 text-sm">Searching...</p>
+        </div>
+
+        <!-- Patient Result Card -->
+        <div id="result-card" class="hidden flat-panel rounded-3xl overflow-hidden">
+          <div class="p-6 border-b border-black/10 dark:border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+             <div class="flex items-center gap-4">
+                <div id="patient-initials" class="w-14 h-14 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center font-heading font-bold text-xl bg-black/5 dark:bg-white/5"></div>
+                <div>
+                   <h3 id="res-patient-name" class="font-heading font-extrabold text-xl tracking-tight"></h3>
+                   <div class="flex flex-wrap items-center gap-3 mt-1 text-xs opacity-70 font-mono">
+                      <span id="res-health-id" class="badge-minimal"></span>
+                      <span><i class="fas fa-phone mr-1"></i> <span id="res-phone"></span></span>
+                      <span><i class="fas fa-tint mr-1 text-red-500"></i> <span id="res-blood"></span></span>
+                   </div>
+                </div>
+             </div>
+          </div>
+
+          <div class="p-6">
+             <!-- State 1: No Access Link (Initiate Visit) -->
+             <div id="initiate-visit-section" class="hidden">
+                <div class="p-6 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10">
+                   <h4 class="font-heading font-bold mb-2">Initiate First Visit</h4>
+                   <p class="text-sm opacity-70 mb-4">Start a new visit to gain scoped access to this patient's records and assign a doctor.</p>
+                   
+                   <div class="flex flex-col sm:flex-row gap-4">
+                      <select id="doctor-select" class="flex-1 p-3 rounded-xl bg-white dark:bg-black border border-black/10 dark:border-white/10 focus:outline-none">
+                         <option value="">Select Doctor...</option>
+                      </select>
+                      <button id="initiate-btn" class="btn-primary px-6 py-3 rounded-xl font-bold transition-colors">
+                         Initiate Visit & Assign
+                      </button>
+                   </div>
+                </div>
+             </div>
+
+             <!-- State 2: Active Access Link -->
+             <div id="active-access-section" class="hidden space-y-6">
+                <!-- Status Banner -->
+                <div id="access-banner" class="flex items-center justify-between p-4 rounded-2xl border border-black/10 dark:border-white/10">
+                   <div class="flex items-center gap-3">
+                      <div id="access-icon" class="w-10 h-10 rounded-full flex items-center justify-center border border-black/10 dark:border-white/10"></div>
+                      <div>
+                         <h4 id="access-title" class="font-heading font-bold text-sm"></h4>
+                         <p id="access-desc" class="text-xs opacity-70"></p>
+                      </div>
+                   </div>
+                   <button id="req-global-btn" class="hidden btn-translucent px-4 py-2 rounded-xl text-xs font-bold transition-colors">
+                      Request Global Access
+                   </button>
+                </div>
+
+                <!-- Bill / Record Upload -->
+                <div class="border border-black/10 dark:border-white/10 rounded-2xl overflow-hidden">
+                   <div class="bg-black/5 dark:bg-white/5 px-5 py-3 border-b border-black/10 dark:border-white/10">
+                      <h4 class="font-heading font-bold text-sm">Upload Bill / Record</h4>
+                   </div>
+                   <div class="p-5">
+                      <form id="upload-form" class="space-y-4">
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                               <label class="block text-xs font-bold opacity-70 mb-1">Date</label>
+                               <input type="date" id="upload-date" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none" required>
+                            </div>
+                            <div>
+                               <label class="block text-xs font-bold opacity-70 mb-1">File</label>
+                               <input type="file" id="upload-file" class="w-full p-2.5 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none" required>
+                            </div>
+                         </div>
+                         <div>
+                            <label class="block text-xs font-bold opacity-70 mb-1">Notes</label>
+                            <textarea id="upload-notes" rows="2" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none" placeholder="Description of the bill or record..."></textarea>
+                         </div>
+                         <button type="submit" id="upload-btn" class="btn-primary px-6 py-3 rounded-xl font-bold transition-colors w-full sm:w-auto">
+                            Upload Record
+                         </button>
+                      </form>
+                   </div>
+                </div>
+             </div>
+          </div>
+        </div>
+
+        <!-- Recent Visits -->
+        <div id="recent-visits-section">
+           <div class="badge-minimal mb-4">Active Visits</div>
+           <div id="recent-visits" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <!-- Populated by JS -->
+           </div>
+        </div>
+      </div>
+
+      <!-- Tab 2: Doctor Directory -->
+      <div id="tab-doctors" class="tab-content space-y-6">
+        
+        <!-- Pending Doctors -->
+        <div id="pending-doctors-container" class="hidden space-y-4">
+           <div class="badge-minimal bg-amber-500/10 text-amber-600 border-none"><i class="fas fa-user-clock mr-2"></i> Pending Approvals</div>
+           <div id="pending-doctors-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Populated by JS -->
+           </div>
+        </div>
+
+        <!-- Active Doctors -->
+        <div class="space-y-4">
+           <div class="badge-minimal">Affiliated Doctors</div>
+           <div id="active-doctors-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <!-- Populated by JS -->
+           </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Overlay for mobile sidebar -->
+  <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden"></div>
+
+  <!-- Scripts -->
+  <script type="module">
+      import { requireRole, signOutUser, getToken } from '../js/auth-guard.js';
+      import { auth, db, API_BASE } from '../js/firebase-config.js';
+      import { toast, setLoading, initials, resolveFileUrl } from '../js/utils.js';
+      import { collection, query, where, onSnapshot, getDocs, doc, getDoc, setDoc, addDoc, updateDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+      let currentUser = null;
+      let currentHospital = null;
+      let affiliatedDoctors = [];
+      let activePatientLink = null;
+      let searchedPatientId = null;
+
+      // Theme logic
+      const themeToggleBtn = document.getElementById('theme-toggle');
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+      } else {
+          document.documentElement.classList.remove('dark');
+      }
+      themeToggleBtn?.addEventListener('click', () => {
+          document.documentElement.classList.toggle('dark');
+          localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      });
+
+      // Init
+      document.addEventListener('DOMContentLoaded', () => {
+          requireRole(['hospital'], (user, role, userData) => {
+              currentUser = user;
+              currentHospital = userData;
+              
+              document.getElementById('hosp-name').textContent = userData.name || 'Hospital Dashboard';
+              
+              initSidebar();
+              loadAffiliatedDoctors();
+              loadActivePatients();
+              setupSearch();
+          });
+      });
+
+      function initSidebar() {
+          const tabs = [
+              { nav: 'nav-registry', content: 'tab-registry', title: 'Patient Registry' },
+              { nav: 'nav-doctors', content: 'tab-doctors', title: 'Doctor Directory' }
+          ];
+
+          tabs.forEach(tab => {
+              document.getElementById(tab.nav).addEventListener('click', (e) => {
+                  tabs.forEach(t => {
+                      document.getElementById(t.nav).classList.remove('active');
+                      document.getElementById(t.content).classList.remove('active');
+                  });
+
+                  document.getElementById(tab.nav).classList.add('active');
+                  document.getElementById(tab.content).classList.add('active');
+                  document.getElementById('view-title').textContent = tab.title;
+
+                  closeMobileSidebar();
+              });
+          });
+
+          document.getElementById('logout-btn').addEventListener('click', () => {
+              signOutUser();
+          });
+
+          const mobileBtn = document.getElementById('mobile-sidebar-toggle');
+          const sidebar = document.getElementById('sidebar');
+          const overlay = document.getElementById('sidebar-overlay');
+          const closeBtn = document.getElementById('close-sidebar-btn');
+
+          mobileBtn?.addEventListener('click', () => {
+              sidebar.classList.toggle('-translate-x-full');
+              overlay.classList.toggle('hidden');
+          });
+          closeBtn?.addEventListener('click', closeMobileSidebar);
+          overlay?.addEventListener('click', closeMobileSidebar);
+      }
+
+      function closeMobileSidebar() {
+          document.getElementById('sidebar').classList.add('-translate-x-full');
+          document.getElementById('sidebar-overlay').classList.add('hidden');
+      }
+
+      function loadAffiliatedDoctors() {
+          const usersRef = collection(db, 'users');
+          const q = query(usersRef, where('role', '==', 'doctor'), where('affiliatedHospitals', 'array-contains', currentUser.uid));
+
+          onSnapshot(q, (snapshot) => {
+              affiliatedDoctors = [];
+              let pendingCount = 0;
+              const activeList = document.getElementById('active-doctors-list');
+              const pendingList = document.getElementById('pending-doctors-list');
+              const pendingContainer = document.getElementById('pending-doctors-container');
+              const doctorSelect = document.getElementById('doctor-select');
+
+              activeList.innerHTML = '';
+              pendingList.innerHTML = '';
+              doctorSelect.innerHTML = '<option value="">Select Doctor...</option>';
+
+              snapshot.forEach(docSnap => {
+                  const docData = { id: docSnap.id, ...docSnap.data() };
+                  affiliatedDoctors.push(docData);
+
+                  const card = document.createElement('div');
+                  const infoHtml = `
+                      <div class="flex items-center gap-3">
+                          <div class="w-10 h-10 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-full flex items-center justify-center font-bold">
+                              ${initials(docData.name || 'Dr')}
+                          </div>
+                          <div>
+                              <h4 class="font-heading font-bold text-sm">${docData.name || 'Doctor'}</h4>
+                              <p class="text-xs opacity-70">${docData.specialization || 'General'}</p>
+                          </div>
+                      </div>
+                  `;
+
+                  if (docData.verified) {
+                      card.className = 'flat-panel flat-panel-hover rounded-2xl p-4 flex items-center justify-between';
+                      card.innerHTML = infoHtml + `
+                          <button onclick="window.revokeDoctor('${docData.id}')" class="btn-translucent text-red-500 border-red-500/20 text-xs font-bold px-3 py-1.5 rounded-xl">Revoke</button>
+                      `;
+                      activeList.appendChild(card);
+
+                      const opt = document.createElement('option');
+                      opt.value = docData.id;
+                      opt.textContent = docData.name;
+                      doctorSelect.appendChild(opt);
+                  } else {
+                      pendingCount++;
+                      card.className = 'flat-panel flat-panel-hover rounded-2xl p-4 flex items-center justify-between border-amber-500/30 bg-amber-500/5';
+                      card.innerHTML = infoHtml + `
+                          <div class="flex gap-2">
+                              <button onclick="window.approveDoctor('${docData.id}')" class="btn-primary text-xs font-bold px-3 py-1.5 rounded-xl">Approve</button>
+                          </div>
+                      `;
+                      pendingList.appendChild(card);
+                  }
+              });
+
+              const pendingBadge = document.getElementById('pending-doctors-badge');
+              if (pendingCount > 0) {
+                  pendingBadge.textContent = pendingCount;
+                  pendingBadge.classList.remove('hidden');
+                  pendingContainer.classList.remove('hidden');
+              } else {
+                  pendingBadge.classList.add('hidden');
+                  pendingContainer.classList.add('hidden');
+              }
+
+              if(activeList.children.length === 0) {
+                  activeList.innerHTML = '<p class="text-sm opacity-60 col-span-full">No active affiliated doctors.</p>';
+              }
+          });
+      }
+
+      window.approveDoctor = async (doctorId) => {
+          try {
+              await setDoc(doc(db, 'users', doctorId), { verified: true }, { merge: true });
+              toast('Doctor approved', 'success');
+          } catch(e) {
+              toast('Error approving doctor', 'error');
+          }
+      };
+
+      window.revokeDoctor = async (doctorId) => {
+          if(!confirm('Are you sure you want to revoke this doctor?')) return;
+          try {
+              await setDoc(doc(db, 'users', doctorId), { verified: false }, { merge: true });
+              toast('Doctor revoked', 'success');
+          } catch(e) {
+              toast('Error revoking doctor', 'error');
+          }
+      };
+
+      function loadActivePatients() {
+          const linksRef = collection(db, 'accessLinks');
+          const q = query(linksRef, where('hospitalId', '==', currentUser.uid));
+
+          onSnapshot(q, async (snapshot) => {
+              let activeCount = 0;
+              const recentContainer = document.getElementById('recent-visits');
+              recentContainer.innerHTML = '';
+
+              const links = [];
+              snapshot.forEach(doc => links.push({id: doc.id, ...doc.data()}));
+              links.sort((a,b) => (b.lastUpdated?.toMillis() || 0) - (a.lastUpdated?.toMillis() || 0));
+
+              activeCount = links.length;
+              document.getElementById('active-patients-badge').textContent = `${activeCount} Active Patient${activeCount!==1?'s':''}`;
+
+              if(links.length === 0) {
+                  recentContainer.innerHTML = '<p class="text-sm opacity-60 col-span-full">No active visits.</p>';
+                  return;
+              }
+
+              for(let i=0; i<Math.min(links.length, 6); i++) {
+                  const link = links[i];
+                  const pSnap = await getDoc(doc(db, 'patients', link.patientId));
+                  if(pSnap.exists()) {
+                      const pData = pSnap.data();
+                      
+                      let statusText = 'Unknown';
+                      if(link.status === 'scoped') statusText = 'Scoped Access';
+                      else if(link.status === 'global') statusText = 'Global Access';
+                      else if(link.status === 'pending_global') statusText = 'Pending Global';
+                      else if(link.status === 'revoked') continue;
+
+                      const card = document.createElement('div');
+                      card.className = 'flat-panel flat-panel-hover rounded-2xl p-5 cursor-pointer transition-transform';
+                      card.onclick = () => {
+                          document.getElementById('patient-search').value = link.patientId;
+                          document.getElementById('search-form').dispatchEvent(new Event('submit'));
+                      };
+                      
+                      card.innerHTML = `
+                          <div class="flex justify-between items-start mb-3">
+                              <h4 class="font-heading font-bold text-sm truncate">${pData.personalInfo?.name || 'Unknown'}</h4>
+                              <span class="badge-minimal py-0.5 px-2 text-[10px]">${statusText}</span>
+                          </div>
+                          <div class="text-xs font-mono opacity-70 mb-2">${link.patientId}</div>
+                          <div class="text-xs opacity-50">Assigned: Dr. ${affiliatedDoctors.find(d => d.id === link.doctorId)?.name || 'Unknown'}</div>
+                      `;
+                      recentContainer.appendChild(card);
+                  }
+              }
+          });
+      }
+
+      function setupSearch() {
+          document.getElementById('search-form').addEventListener('submit', async (e) => {
+              e.preventDefault();
+              const q = document.getElementById('patient-search').value.trim();
+              if(!q) return;
+
+              document.getElementById('result-card').classList.add('hidden');
+              document.getElementById('search-loading').classList.remove('hidden');
+
+              try {
+                  let patientDoc = null;
+                  let pId = null;
+
+                  const directRef = doc(db, 'patients', q);
+                  const directSnap = await getDoc(directRef);
+                  if(directSnap.exists()) {
+                      patientDoc = directSnap.data();
+                      pId = directSnap.id;
+                  } else {
+                      const pRef = collection(db, 'patients');
+                      const phoneQ = query(pRef, where('personalInfo.phone', '==', q));
+                      const phoneSnap = await getDocs(phoneQ);
+                      if(!phoneSnap.empty) {
+                          patientDoc = phoneSnap.docs[0].data();
+                          pId = phoneSnap.docs[0].id;
+                      }
+                  }
+
+                  if(patientDoc) {
+                      searchedPatientId = pId;
+                      renderPatientResult(pId, patientDoc);
+                  } else {
+                      toast('Patient not found', 'error');
+                      document.getElementById('result-card').classList.add('hidden');
+                  }
+              } catch (err) {
+                  toast('Search error', 'error');
+              } finally {
+                  document.getElementById('search-loading').classList.add('hidden');
+              }
+          });
+
+          document.getElementById('initiate-btn').addEventListener('click', async () => {
+              const doctorId = document.getElementById('doctor-select').value;
+              if(!doctorId) {
+                  toast('Please select a doctor', 'error');
+                  return;
+              }
+
+              setLoading(document.getElementById('initiate-btn'), true);
+              try {
+                  const linkId = `${currentUser.uid}_${searchedPatientId}`;
+                  await setDoc(doc(db, 'accessLinks', linkId), {
+                      hospitalId: currentUser.uid,
+                      patientId: searchedPatientId,
+                      doctorId: doctorId,
+                      status: 'scoped',
+                      createdAt: serverTimestamp(),
+                      lastUpdated: serverTimestamp()
+                  });
+                  toast('Visit initiated successfully', 'success');
+                  document.getElementById('search-form').dispatchEvent(new Event('submit'));
+              } catch(e) {
+                  toast('Error initiating visit', 'error');
+              } finally {
+                  setLoading(document.getElementById('initiate-btn'), false, 'Initiate Visit & Assign');
+              }
+          });
+
+          document.getElementById('req-global-btn').addEventListener('click', async () => {
+              if(!activePatientLink) return;
+              try {
+                  await setDoc(doc(db, 'accessLinks', activePatientLink.id), {
+                      status: 'pending_global',
+                      lastUpdated: serverTimestamp()
+                  }, { merge: true });
+                  toast('Global access requested', 'success');
+                  document.getElementById('search-form').dispatchEvent(new Event('submit'));
+              } catch(e) {
+                  toast('Error requesting access', 'error');
+              }
+          });
+
+          document.getElementById('upload-form').addEventListener('submit', async (e) => {
+              e.preventDefault();
+              if(!activePatientLink || activePatientLink.status === 'revoked') {
+                  toast('Active access required to upload records', 'error');
+                  return;
+              }
+
+              const file = document.getElementById('upload-file').files[0];
+              const date = document.getElementById('upload-date').value;
+              const notes = document.getElementById('upload-notes').value;
+              if(!file || !date) return;
+
+              const btn = document.getElementById('upload-btn');
+              setLoading(btn, true);
+
+              try {
+                  const token = await getToken();
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  formData.append('type', 'bill');
+                  formData.append('patientId', searchedPatientId);
+
+                  const res = await fetch(`${API_BASE}/api/upload`, {
+                      method: 'POST',
+                      headers: { 'Authorization': `Bearer ${token}` },
+                      body: formData
+                  });
+                  const data = await res.json();
+                  if(!res.ok) throw new Error(data.error || 'Upload failed');
+
+                  await addDoc(collection(db, `patients/${searchedPatientId}/records`), {
+                      type: 'bill',
+                      date: date,
+                      fileUrl: data.url,
+                      notes: notes,
+                      hospitalId: currentUser.uid,
+                      doctorId: activePatientLink.doctorId,
+                      uploadedAt: serverTimestamp()
+                  });
+
+                  toast('Record uploaded successfully', 'success');
+                  document.getElementById('upload-form').reset();
+              } catch(e) {
+                  toast(e.message || 'Error uploading record', 'error');
+              } finally {
+                  setLoading(btn, false, 'Upload Record');
+              }
+          });
+      }
+
+      async function renderPatientResult(patientId, data) {
+          document.getElementById('result-card').classList.remove('hidden');
+          
+          document.getElementById('patient-initials').textContent = initials(data.personalInfo?.name || '?');
+          document.getElementById('res-patient-name').textContent = data.personalInfo?.name || 'Unknown Patient';
+          document.getElementById('res-health-id').textContent = patientId;
+          document.getElementById('res-phone').textContent = data.personalInfo?.phone || 'N/A';
+          document.getElementById('res-blood').textContent = data.medicalInfo?.bloodGroup || 'N/A';
+
+          const linkId = `${currentUser.uid}_${patientId}`;
+          const linkSnap = await getDoc(doc(db, 'accessLinks', linkId));
+
+          const initiateSec = document.getElementById('initiate-visit-section');
+          const activeSec = document.getElementById('active-access-section');
+
+          if(linkSnap.exists() && linkSnap.data().status !== 'revoked') {
+              activePatientLink = {id: linkSnap.id, ...linkSnap.data()};
+              initiateSec.classList.add('hidden');
+              activeSec.classList.remove('hidden');
+              renderAccessBanner(activePatientLink);
+          } else {
+              activePatientLink = null;
+              initiateSec.classList.remove('hidden');
+              activeSec.classList.add('hidden');
+          }
+      }
+
+      function renderAccessBanner(link) {
+          const banner = document.getElementById('access-banner');
+          const icon = document.getElementById('access-icon');
+          const title = document.getElementById('access-title');
+          const desc = document.getElementById('access-desc');
+          const reqBtn = document.getElementById('req-global-btn');
+
+          reqBtn.classList.add('hidden');
+          banner.className = 'flex items-center justify-between p-4 rounded-2xl border border-black/10 dark:border-white/10';
+          icon.className = 'w-10 h-10 rounded-full flex items-center justify-center border border-black/10 dark:border-white/10';
+          title.className = 'font-heading font-bold text-sm';
+          desc.className = 'text-xs opacity-70';
+
+          if(link.status === 'scoped') {
+              banner.classList.add('bg-indigo-500/10', 'border-indigo-500/30');
+              icon.classList.add('bg-indigo-500/20', 'text-indigo-600', 'dark:text-indigo-400');
+              icon.innerHTML = '<i class="fas fa-lock-open"></i>';
+              title.textContent = 'Scoped Access Active';
+              desc.textContent = 'You can upload records and view data created during this visit.';
+              reqBtn.classList.remove('hidden');
+          } 
+          else if(link.status === 'global') {
+              banner.classList.add('bg-green-500/10', 'border-green-500/30');
+              icon.classList.add('bg-green-500/20', 'text-green-600', 'dark:text-green-400');
+              icon.innerHTML = '<i class="fas fa-globe"></i>';
+              title.textContent = 'Global Access Active';
+              desc.textContent = 'You have full access to this patient\'s history.';
+          }
+          else if(link.status === 'pending_global') {
+              banner.classList.add('bg-amber-500/10', 'border-amber-500/30');
+              icon.classList.add('bg-amber-500/20', 'text-amber-600', 'dark:text-amber-400');
+              icon.innerHTML = '<i class="fas fa-clock"></i>';
+              title.textContent = 'Global Access Pending';
+              desc.textContent = 'Awaiting patient approval for global access.';
+          }
+      }
+
+  </script>
+</body>
+</html>
