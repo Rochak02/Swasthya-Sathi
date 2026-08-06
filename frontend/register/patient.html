@@ -212,12 +212,16 @@
     import { auth } from '../js/firebase-config.js';
     import { initDarkMode } from '../js/utils.js';
 
-    // Theme initialization (persists theme selected on landing page)
+    // Theme initialization
     initDarkMode();
 
     const toastMsg = document.getElementById('toast-msg');
     const togglePassword = document.getElementById('toggle-password');
     const passwordInput = document.getElementById('password');
+
+    // Clear any stale error state on fresh page load
+    toastMsg.classList.add('hidden');
+    toastMsg.textContent = '';
 
     togglePassword.addEventListener('click', () => {
       const isPass = passwordInput.type === 'password';
@@ -233,6 +237,18 @@
         toastMsg.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-500');
       }
       toastMsg.textContent = msg;
+    }
+
+    function getFriendlyError(err) {
+      const msg = (err.message || '').toLowerCase();
+      const code = err.code || '';
+      if (code === 'auth/email-already-in-use' || msg.includes('email already exists'))
+        return 'This email is already registered. Please login instead.';
+      if (code === 'auth/weak-password')
+        return 'Password must be at least 6 characters.';
+      if (msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('load failed'))
+        return 'Cannot connect to backend. Make sure the server is running on port 8000.';
+      return err.message || 'Registration failed. Please try again.';
     }
 
     // Form Submission
@@ -282,18 +298,20 @@
           throw new Error(errData.detail || "Registration failed on server.");
         }
 
-        // Login using Firebase Auth directly so the auth state is preserved
+        const result = await res.json();
+
+        // Auto-login after successful registration
         await signInWithEmailAndPassword(auth, email, password);
 
-        showToast("Registration successful! Redirecting to Patient Dashboard...", false);
+        showToast(`Account created! Your Health ID: ${result.healthId} — Redirecting to dashboard...`, false);
 
         setTimeout(() => {
           window.location.href = '../patient/dashboard.html';
-        }, 1500);
+        }, 2000);
 
       } catch (err) {
         console.error("Patient Registration Error:", err);
-        showToast(err.message || "Failed to register. Please try again.", true);
+        showToast(getFriendlyError(err), true);
         submitBtn.disabled = false;
         btnText.textContent = "Register & Generate Health ID";
       }
