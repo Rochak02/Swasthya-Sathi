@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lab Dashboard — Swasthya Sathi</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom CSS Design Tokens -->
+  <link rel="stylesheet" href="../css/custom.css">
+</head>
+<body class="relative bg-white dark:bg-black text-black dark:text-white transition-colors duration-150 antialiased min-h-screen flex flex-col">
+
+  <div class="flex-1 flex flex-col md:flex-row min-h-screen relative overflow-hidden">
+
+    <!-- ── Floating Translucent Glass Sidebar ─────────────────────────────── -->
+    <aside id="sidebar" class="w-full md:w-72 p-4 md:p-6 flex-shrink-0 z-40 transition-transform duration-300 transform -translate-x-full md:translate-x-0 fixed md:relative inset-y-0 left-0 border-r border-black/10 dark:border-white/10 flex flex-col justify-between bg-white/80 dark:bg-black/80 backdrop-blur-xl">
+      <div>
+        <div class="flex items-center justify-between mb-8 px-2">
+          <a href="../index.html" class="flex items-center gap-3 group">
+            <div class="w-10 h-10 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center">
+              <i class="fa-solid fa-microscope text-lg"></i>
+            </div>
+            <span class="font-heading font-extrabold text-xl tracking-tight">
+              Swasthya<span class="font-light opacity-70">Sathi</span>
+            </span>
+          </a>
+          <button id="close-sidebar-btn" class="md:hidden opacity-60 hover:opacity-100">
+            <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+
+        <div class="flat-panel p-4 mb-6 rounded-2xl flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center font-heading font-bold text-lg flex-shrink-0">
+            <i class="fa-solid fa-flask"></i>
+          </div>
+          <div class="overflow-hidden">
+            <h4 id="lab-name" class="font-heading font-bold text-sm truncate">Loading...</h4>
+            <p class="text-xs font-mono opacity-60 truncate">Diagnostic Portal</p>
+          </div>
+        </div>
+
+        <nav class="space-y-1.5" id="nav-tabs">
+          <button class="nav-btn active w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left">
+            <i class="fa-solid fa-cloud-arrow-up text-base w-5"></i>
+            <span>Direct Upload</span>
+          </button>
+        </nav>
+      </div>
+
+      <div class="pt-6 border-t border-black/10 dark:border-white/10 space-y-2">
+        <button id="theme-toggle" class="btn-translucent w-full py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2">
+          <span class="dark:hidden flex items-center gap-2"><i class="fa-solid fa-moon"></i> Dark Theme</span>
+          <span class="hidden dark:flex items-center gap-2"><i class="fa-solid fa-sun"></i> Light Theme</span>
+        </button>
+        <button id="logout-btn" class="btn-translucent w-full py-2.5 px-4 rounded-xl text-xs text-red-600 dark:text-red-400 flex items-center justify-center gap-2 border-red-500/20">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── Main Workspace Area ───────────────────────────────────────────── -->
+    <main class="flex-1 flex flex-col p-4 sm:p-6 md:p-8 max-w-4xl w-full mx-auto overflow-y-auto">
+      
+      <header class="flex items-center justify-between mb-8 gap-4">
+        <div class="flex items-center gap-3">
+          <button id="mobile-sidebar-toggle" class="md:hidden w-10 h-10 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div>
+            <h1 class="font-heading font-extrabold text-2xl sm:text-3xl tracking-tight">Direct Lab Upload</h1>
+            <p class="text-xs sm:text-sm opacity-60">Search patient and upload reports directly to Medical Grid</p>
+          </div>
+        </div>
+      </header>
+
+      <div class="space-y-6">
+        <!-- Search Section -->
+        <div class="flat-panel p-4 rounded-3xl">
+          <form id="search-form" class="flex flex-col sm:flex-row gap-4 items-center">
+            <div class="flex-1 relative w-full">
+              <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 opacity-50"></i>
+              <input type="text" id="patient-search" placeholder="Enter Patient Health ID or Phone Number..." class="w-full pl-12 pr-4 py-3 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:border-black/30 dark:focus:border-white/30 transition-colors" required>
+            </div>
+            <button type="submit" id="search-btn" class="btn-primary w-full sm:w-auto px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2">
+              <span>Search</span>
+            </button>
+          </form>
+        </div>
+
+        <div id="search-loading" class="hidden text-center py-8 opacity-60">
+          <i class="fas fa-spinner fa-spin text-3xl"></i>
+          <p class="mt-2 text-sm">Searching...</p>
+        </div>
+
+        <!-- Result Section -->
+        <div id="result-section" class="hidden space-y-6">
+          <div class="flat-panel p-6 rounded-3xl flex justify-between items-center border border-green-500/30 bg-green-500/5">
+            <div>
+              <h3 class="font-heading font-bold text-xl" id="patient-name">Patient Name</h3>
+              <p class="text-xs font-mono opacity-70" id="patient-health-id">Health ID: ...</p>
+            </div>
+            <span class="badge-minimal bg-green-500/20 text-green-600 dark:text-green-400 border-none">Verified Patient</span>
+          </div>
+
+          <div class="flat-panel p-6 sm:p-8 rounded-3xl">
+            <h4 class="font-heading font-bold text-lg mb-6">Upload Diagnostic Report</h4>
+            <form id="upload-form" class="space-y-5">
+              <input type="hidden" id="target-health-id">
+              
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label class="block text-xs font-bold opacity-70 mb-1.5">Report Category</label>
+                  <select id="report-category" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none" required>
+                    <option value="">Select Category</option>
+                    <option value="blood_test">Blood Test</option>
+                    <option value="urine_test">Urine Test</option>
+                    <option value="pathology">Pathology</option>
+                    <option value="mri">MRI Scan</option>
+                    <option value="xray">X-Ray</option>
+                    <option value="other">Other</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-xs font-bold opacity-70 mb-1.5">Date of Test</label>
+                  <input type="date" id="report-date" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none" required>
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold opacity-70 mb-1.5">File Upload (.pdf, .jpg, .png)</label>
+                <input type="file" id="report-file" accept=".pdf,.jpg,.jpeg,.png" class="w-full p-2.5 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none" required>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold opacity-70 mb-1.5">Lab Notes</label>
+                <textarea id="lab-notes" rows="3" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none" placeholder="Any relevant notes or summary..."></textarea>
+              </div>
+
+              <button type="submit" id="submit-upload-btn" class="w-full btn-primary px-6 py-4 rounded-xl font-bold flex justify-center items-center">
+                Transmit to Medical Grid
+              </button>
+              
+              <div id="progress-bar-container" class="hidden mt-4">
+                <div class="w-full bg-black/10 dark:bg-white/10 rounded-full h-2">
+                  <div id="progress-bar" class="bg-black dark:bg-white h-2 rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+                <p class="text-[10px] text-center opacity-60 mt-1.5">Uploading...</p>
+              </div>
+              
+              <div id="success-message" class="hidden mt-4 p-4 bg-green-500/10 text-green-700 dark:text-green-400 rounded-xl text-sm border border-green-500/20 text-center font-medium">
+                Successfully uploaded to patient's Medical Grid!
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden"></div>
+
+  <script type="module">
+      import { requireRole, signOutUser, getToken } from '../js/auth-guard.js';
+      import { auth, db, API_BASE } from '../js/firebase-config.js';
+      import { toast, setLoading } from '../js/utils.js';
+      import { collection, query, where, getDocs, doc, getDoc, addDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      // Theme logic
+      const themeToggleBtn = document.getElementById('theme-toggle');
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+      } else {
+          document.documentElement.classList.remove('dark');
+      }
+      themeToggleBtn?.addEventListener('click', () => {
+          document.documentElement.classList.toggle('dark');
+          localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      });
+
+      let currentUserData = null;
+
+      requireRole(['lab'], (user, userData) => {
+          currentUserData = userData;
+          document.getElementById('lab-name').textContent = userData.name || 'Lab Portal';
+          document.getElementById('logout-btn').addEventListener('click', signOutUser);
+      });
+
+      // Mobile sidebar logic
+      const mobileBtn = document.getElementById('mobile-sidebar-toggle');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      const closeBtn = document.getElementById('close-sidebar-btn');
+
+      function toggleSidebar() {
+          sidebar.classList.toggle('-translate-x-full');
+          overlay.classList.toggle('hidden');
+      }
+      mobileBtn?.addEventListener('click', toggleSidebar);
+      closeBtn?.addEventListener('click', toggleSidebar);
+      overlay?.addEventListener('click', toggleSidebar);
+
+      // Search Patient
+      document.getElementById('search-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const searchInput = document.getElementById('patient-search').value.trim();
+          const btn = document.getElementById('search-btn');
+          
+          document.getElementById('result-section').classList.add('hidden');
+          document.getElementById('search-loading').classList.remove('hidden');
+
+          try {
+              let patientDoc = null;
+              const docRef = doc(db, 'patients', searchInput);
+              const docSnap = await getDoc(docRef);
+              
+              if (docSnap.exists()) {
+                  patientDoc = { id: docSnap.id, ...docSnap.data() };
+              } else {
+                  const q = query(collection(db, 'patients'), where('personalInfo.phone', '==', searchInput));
+                  const querySnapshot = await getDocs(q);
+                  if (!querySnapshot.empty) {
+                      const firstDoc = querySnapshot.docs[0];
+                      patientDoc = { id: firstDoc.id, ...firstDoc.data() };
+                  }
+              }
+
+              if (patientDoc) {
+                  document.getElementById('result-section').classList.remove('hidden');
+                  document.getElementById('patient-name').textContent = patientDoc.personalInfo?.fullName || patientDoc.personalInfo?.name || 'Unknown Name';
+                  document.getElementById('patient-health-id').textContent = `Health ID: ${patientDoc.id}`;
+                  document.getElementById('target-health-id').value = patientDoc.id;
+                  
+                  document.getElementById('upload-form').reset();
+                  document.getElementById('progress-bar-container').classList.add('hidden');
+                  document.getElementById('success-message').classList.add('hidden');
+              } else {
+                  toast('Patient not found', 'error');
+              }
+          } catch (error) {
+              console.error(error);
+              toast('Error searching patient', 'error');
+          } finally {
+              document.getElementById('search-loading').classList.add('hidden');
+          }
+      });
+
+      // Upload Form
+      document.getElementById('upload-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          
+          const healthId = document.getElementById('target-health-id').value;
+          const category = document.getElementById('report-category').value;
+          const date = document.getElementById('report-date').value;
+          const notes = document.getElementById('lab-notes').value;
+          const fileInput = document.getElementById('report-file');
+          const file = fileInput.files[0];
+
+          if (!file) return;
+
+          const btn = document.getElementById('submit-upload-btn');
+          const progressContainer = document.getElementById('progress-bar-container');
+          const progressBar = document.getElementById('progress-bar');
+          
+          setLoading(btn, true);
+          progressContainer.classList.remove('hidden');
+          progressBar.style.width = '20%';
+          document.getElementById('success-message').classList.add('hidden');
+
+          try {
+              const token = await getToken();
+              const formData = new FormData();
+              formData.append('file', file);
+              
+              progressBar.style.width = '40%';
+
+              const uploadRes = await fetch(`${API_BASE}/api/upload`, {
+                  method: 'POST',
+                  headers: {
+                      'Authorization': `Bearer ${token}`
+                  },
+                  body: formData
+              });
+
+              if (!uploadRes.ok) throw new Error('Upload failed');
+              const uploadData = await uploadRes.json();
+              
+              progressBar.style.width = '80%';
+
+              await addDoc(collection(db, `patients/${healthId}/records`), {
+                  type: category,
+                  hospitalId: auth.currentUser.uid,
+                  hospitalName: currentUserData.name + ' (Verified Lab)',
+                  notes: notes,
+                  fileName: file.name,
+                  fileURL: uploadData.url,
+                  date: date,
+                  uploadedBy: {
+                      role: 'lab',
+                      uid: auth.currentUser.uid
+                  },
+                  createdAt: new Date()
+              });
+
+              progressBar.style.width = '100%';
+              
+              document.getElementById('success-message').classList.remove('hidden');
+              document.getElementById('upload-form').reset();
+              toast('Report successfully uploaded', 'success');
+              
+          } catch (error) {
+              console.error(error);
+              toast('Failed to upload report', 'error');
+              progressContainer.classList.add('hidden');
+          } finally {
+              setLoading(btn, false, 'Transmit to Medical Grid');
+              setTimeout(() => {
+                  progressContainer.classList.add('hidden');
+                  progressBar.style.width = '0%';
+              }, 3000);
+          }
+      });
+  </script>
+</body>
+</html>

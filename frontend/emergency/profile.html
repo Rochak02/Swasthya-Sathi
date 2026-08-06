@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emergency Profile - MediGrid</title>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        primary: '#0F172A',
+                        secondary: '#334155',
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../css/custom.css">
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200 transition-colors duration-200 min-h-screen flex flex-col relative overflow-x-hidden">
+    
+    <!-- Background Orbs -->
+    <div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+        <div class="absolute top-[-10%] left-[-10%] w-96 h-96 rounded-full bg-red-500/20 blur-3xl"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-96 h-96 rounded-full bg-blue-500/10 blur-3xl"></div>
+    </div>
+
+    <!-- Red EMERGENCY Banner -->
+    <div class="bg-red-600 text-white font-bold text-center py-2 px-4 z-10 relative uppercase tracking-wider text-sm shadow-md animate-pulse">
+        <i class="fas fa-exclamation-triangle mr-2"></i> EMERGENCY MEDICAL INFORMATION
+    </div>
+
+    <div class="container mx-auto px-4 py-6 max-w-4xl relative z-10 flex-grow">
+        
+        <!-- Header -->
+        <header class="flex justify-between items-center mb-6">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-kit-medical text-brand-600 dark:text-brand-500 text-2xl"></i>
+                <span class="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-brand-600 to-blue-600 dark:from-brand-400 dark:to-blue-400">
+                    MediGrid
+                </span>
+            </div>
+            
+            <button id="theme-toggle" class="p-2 rounded-lg bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-300 dark:hover:bg-slate-700 transition-colors">
+                <i class="fas fa-moon dark:hidden"></i>
+                <i class="fas fa-sun hidden dark:block"></i>
+            </button>
+        </header>
+
+        <!-- Loading State -->
+        <div id="loading-spinner" class="flex flex-col items-center justify-center py-20">
+            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mb-4"></div>
+            <p class="text-slate-500 dark:text-slate-400 font-medium">Loading emergency profile...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error-container" class="hidden max-w-lg mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-red-200 dark:border-red-900/30 p-8 text-center mt-10">
+            <div class="w-20 h-20 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-qrcode text-3xl text-red-600 dark:text-red-500"></i>
+            </div>
+            <h2 id="error-title" class="text-2xl font-bold text-slate-800 dark:text-white mb-2">Invalid Request</h2>
+            <p id="error-message" class="text-slate-600 dark:text-slate-400 mb-6">The requested emergency profile could not be found or the QR code is invalid.</p>
+        </div>
+
+        <!-- Profile Content (Hidden initially) -->
+        <div id="profile-content" class="hidden space-y-6">
+            
+            <!-- Emergency Header Card -->
+            <div class="bg-gradient-to-br from-red-600 to-red-800 rounded-2xl p-6 text-white shadow-lg shadow-red-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div>
+                    <div class="inline-block bg-white/20 px-3 py-1 rounded-full text-xs font-bold tracking-wide uppercase mb-3 text-red-50">
+                        Emergency Profile
+                    </div>
+                    <h1 id="patient-name" class="text-3xl font-bold mb-2">Patient Name</h1>
+                    <div class="flex items-center gap-2 text-red-100 font-mono">
+                        <i class="fas fa-id-card"></i>
+                        <span id="patient-id">DHI-XXXX-XXXX</span>
+                    </div>
+                </div>
+                
+                <div class="bg-white text-red-700 rounded-xl p-4 min-w-[120px] text-center shadow-inner border border-red-100">
+                    <p class="text-xs font-bold uppercase text-red-500 mb-1">Blood Group</p>
+                    <p id="header-blood-group" class="text-4xl font-extrabold">-</p>
+                </div>
+            </div>
+
+            <!-- Critical Alerts Box -->
+            <div id="alerts-container" class="space-y-3">
+                <!-- Allergies Alert -->
+                <div id="allergies-alert" class="hidden bg-red-50 border border-red-200 dark:bg-red-900/20 dark:border-red-800/50 rounded-xl p-4 flex items-start gap-3">
+                    <div class="mt-0.5 text-red-600 dark:text-red-500">
+                        <i class="fas fa-triangle-exclamation text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-red-800 dark:text-red-400">CRITICAL ALLERGIES</h3>
+                        <p id="allergies-list" class="text-red-700 dark:text-red-300 font-medium"></p>
+                    </div>
+                </div>
+
+                <!-- Chronic Conditions Alert -->
+                <div id="conditions-alert" class="hidden bg-amber-50 border border-amber-200 dark:bg-amber-900/20 dark:border-amber-800/50 rounded-xl p-4 flex items-start gap-3">
+                    <div class="mt-0.5 text-amber-600 dark:text-amber-500">
+                        <i class="fas fa-notes-medical text-xl"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-bold text-amber-800 dark:text-amber-400">CHRONIC CONDITIONS</h3>
+                        <p id="conditions-list" class="text-amber-700 dark:text-amber-300 font-medium"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Info Cards Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <!-- Personal Info -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                    <h3 class="text-lg font-bold mb-4 pb-2 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2">
+                        <i class="fas fa-user text-brand-500"></i> Personal Information
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">Date of Birth</p>
+                                <p id="patient-dob" class="font-medium">N/A</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">Gender</p>
+                                <p id="patient-gender" class="font-medium capitalize">N/A</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">Weight</p>
+                                <p id="patient-weight" class="font-medium">N/A</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-500 dark:text-slate-400 uppercase font-semibold">Height</p>
+                                <p id="patient-height" class="font-medium">N/A</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Emergency Contact -->
+                <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col">
+                    <h3 class="text-lg font-bold mb-4 pb-2 border-b border-slate-100 dark:border-slate-700 flex items-center gap-2 text-red-600 dark:text-red-400">
+                        <i class="fas fa-phone-alt"></i> Emergency Contact
+                    </h3>
+                    <div class="flex-grow flex flex-col justify-center">
+                        <div class="mb-4">
+                            <p id="contact-name" class="text-xl font-bold">N/A</p>
+                            <p id="contact-relation" class="text-sm text-slate-500 dark:text-slate-400">Relation: -</p>
+                        </div>
+                        <a id="contact-phone-btn" href="#" class="block w-full bg-red-600 hover:bg-red-700 text-white text-center font-bold py-3 px-4 rounded-xl transition-colors shadow-md shadow-red-500/20">
+                            <i class="fas fa-phone mr-2"></i> <span id="contact-phone">Call Contact</span>
+                        </a>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="text-center py-6 mt-auto relative z-10">
+        <p class="text-red-600 dark:text-red-400 font-medium text-sm mb-1 uppercase tracking-wide">
+            <i class="fas fa-shield-medical mr-1"></i> For Emergency Medical Use Only
+        </p>
+        <p class="text-slate-500 dark:text-slate-400 text-sm">
+            Powered by MediGrid
+        </p>
+    </footer>
+
+    <!-- Script -->
+    <script type="module">
+        import { db } from '../../js/firebase-config.js';
+        import { doc, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+        import { formatDate, initDarkMode } from '../../js/utils.js';
+
+        // Initialize Theme
+        if (typeof initDarkMode === 'function') {
+            initDarkMode();
+        } else {
+            // Fallback toggle if initDarkMode isn't available
+            const themeToggleBtn = document.getElementById('theme-toggle');
+            themeToggleBtn?.addEventListener('click', () => {
+                document.documentElement.classList.toggle('dark');
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const healthId = urlParams.get('id');
+
+            const spinner = document.getElementById('loading-spinner');
+            const errorContainer = document.getElementById('error-container');
+            const profileContent = document.getElementById('profile-content');
+
+            if (!healthId) {
+                spinner.classList.add('hidden');
+                errorContainer.classList.remove('hidden');
+                document.getElementById('error-title').textContent = 'Invalid QR Code';
+                document.getElementById('error-message').textContent = 'No Health ID provided in the URL.';
+                return;
+            }
+
+            try {
+                // Public read - assuming Firestore rules allow this
+                const patientRef = doc(db, 'patients', healthId);
+                const patientSnap = await getDoc(patientRef);
+
+                spinner.classList.add('hidden');
+
+                if (patientSnap.exists()) {
+                    const data = patientSnap.data();
+                    
+                    // Populate Header
+                    document.getElementById('patient-name').textContent = data.personalInfo?.fullName || 'Unknown Patient';
+                    document.getElementById('patient-id').textContent = healthId;
+                    
+                    const bloodGroup = data.medicalInfo?.bloodGroup || 'N/A';
+                    document.getElementById('header-blood-group').textContent = bloodGroup;
+
+                    // Alerts
+                    const allergies = data.medicalInfo?.allergies || [];
+                    if (allergies.length > 0) {
+                        document.getElementById('allergies-alert').classList.remove('hidden');
+                        document.getElementById('allergies-list').textContent = allergies.join(', ');
+                    }
+
+                    const conditions = data.medicalInfo?.chronicConditions || [];
+                    if (conditions.length > 0) {
+                        document.getElementById('conditions-alert').classList.remove('hidden');
+                        document.getElementById('conditions-list').textContent = conditions.join(', ');
+                    }
+
+                    // Personal Info
+                    document.getElementById('patient-dob').textContent = data.personalInfo?.dateOfBirth ? (typeof formatDate === 'function' ? formatDate(data.personalInfo.dateOfBirth) : data.personalInfo.dateOfBirth) : 'N/A';
+                    document.getElementById('patient-gender').textContent = data.personalInfo?.gender || 'N/A';
+                    document.getElementById('patient-weight').textContent = data.medicalInfo?.weight ? `${data.medicalInfo.weight} kg` : 'N/A';
+                    document.getElementById('patient-height').textContent = data.medicalInfo?.height ? `${data.medicalInfo.height} cm` : 'N/A';
+
+                    // Emergency Contact
+                    const contact = data.emergencyContact || {};
+                    document.getElementById('contact-name').textContent = contact.name || 'Not Provided';
+                    document.getElementById('contact-relation').textContent = `Relation: ${contact.relation || 'N/A'}`;
+                    
+                    const phoneBtn = document.getElementById('contact-phone-btn');
+                    const phoneText = document.getElementById('contact-phone');
+                    
+                    if (contact.phone) {
+                        phoneBtn.href = `tel:${contact.phone}`;
+                        phoneText.textContent = `Call ${contact.phone}`;
+                    } else {
+                        phoneBtn.href = '#';
+                        phoneText.textContent = 'No Phone Number';
+                        phoneBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                    }
+
+                    // Show profile
+                    profileContent.classList.remove('hidden');
+
+                } else {
+                    errorContainer.classList.remove('hidden');
+                    document.getElementById('error-title').textContent = 'Profile Not Found';
+                    document.getElementById('error-message').textContent = 'The emergency profile for this Health ID does not exist.';
+                }
+            } catch (error) {
+                console.error('Error fetching emergency profile:', error);
+                spinner.classList.add('hidden');
+                errorContainer.classList.remove('hidden');
+                document.getElementById('error-title').textContent = 'Error Loading Profile';
+                document.getElementById('error-message').textContent = 'An error occurred while retrieving the emergency profile data.';
+            }
+        });
+    </script>
+</body>
+</html>

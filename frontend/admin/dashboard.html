@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Control Center — Swasthya Sathi</title>
+
+  <!-- Google Fonts: Plus Jakarta Sans & Outfit -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Custom CSS Design Tokens -->
+  <link rel="stylesheet" href="../css/custom.css">
+</head>
+<body class="relative bg-white dark:bg-black text-black dark:text-white transition-colors duration-150 antialiased min-h-screen flex flex-col">
+
+  <div class="flex-1 flex flex-col md:flex-row min-h-screen relative overflow-hidden">
+
+    <!-- ── Floating Translucent Glass Sidebar ─────────────────────────────── -->
+    <aside id="sidebar" class="w-full md:w-72 p-4 md:p-6 flex-shrink-0 z-40 transition-transform duration-300 transform -translate-x-full md:translate-x-0 fixed md:relative inset-y-0 left-0 border-r border-black/10 dark:border-white/10 flex flex-col justify-between bg-white/80 dark:bg-black/80 backdrop-blur-xl h-screen md:h-auto overflow-y-auto">
+      <div class="flex flex-col h-full">
+        
+        <!-- Sidebar Brand Logo -->
+        <div class="flex items-center justify-between mb-8 px-2 flex-shrink-0">
+          <a href="../index.html" class="flex items-center gap-3 group">
+            <div class="w-10 h-10 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center">
+              <i class="fa-solid fa-shield-halved text-lg"></i>
+            </div>
+            <span class="font-heading font-extrabold text-xl tracking-tight">
+              Swasthya<span class="font-light opacity-70">Sathi</span>
+            </span>
+          </a>
+          <button id="close-sidebar-btn" class="md:hidden opacity-60 hover:opacity-100">
+            <i class="fa-solid fa-xmark text-xl"></i>
+          </button>
+        </div>
+
+        <!-- Profile Badge -->
+        <div class="flat-panel p-4 mb-6 rounded-2xl flex items-center gap-3 flex-shrink-0">
+          <div class="w-12 h-12 rounded-full border border-blue-500/20 bg-blue-500/10 flex items-center justify-center text-blue-600 dark:text-blue-400 font-bold text-lg flex-shrink-0">
+            <i class="fa-solid fa-user-shield"></i>
+          </div>
+          <div class="overflow-hidden">
+            <h4 class="font-heading font-bold text-sm truncate">System Admin</h4>
+            <p class="text-[10px] font-bold text-blue-600 dark:text-blue-400 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span> Superuser
+            </p>
+          </div>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <nav class="space-y-1.5 flex-1 overflow-y-auto pr-2">
+          <button id="nav-queue" class="admin-nav-btn active nav-btn w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left">
+            <span class="flex items-center gap-3">
+              <i class="fa-solid fa-clock-rotate-left text-base w-5"></i>
+              <span>Verifications</span>
+            </span>
+            <span id="pending-count" class="badge-minimal text-[10px]">0</span>
+          </button>
+          
+          <button id="nav-mod" class="admin-nav-btn nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left">
+            <i class="fa-solid fa-users-gear text-base w-5"></i>
+            <span>Moderation</span>
+          </button>
+
+          <button id="nav-ads" class="admin-nav-btn nav-btn w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left">
+            <span class="flex items-center gap-3">
+              <i class="fa-solid fa-rectangle-ad text-base w-5"></i>
+              <span>Ads Approval</span>
+            </span>
+            <span id="ads-pending-count" class="badge-minimal text-[10px] border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400">0</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Bottom Actions -->
+      <div class="pt-6 border-t border-black/10 dark:border-white/10 space-y-2 flex-shrink-0">
+        <button id="theme-toggle" class="btn-translucent w-full py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2">
+          <span class="dark:hidden flex items-center gap-2"><i class="fa-solid fa-moon"></i> Dark Theme</span>
+          <span class="hidden dark:flex items-center gap-2"><i class="fa-solid fa-sun"></i> Light Theme</span>
+        </button>
+        <button id="logout-btn" class="btn-translucent w-full py-2.5 px-4 rounded-xl text-xs text-red-600 dark:text-red-400 flex items-center justify-center gap-2 border-red-500/20">
+          <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- ── Main Workspace Area ───────────────────────────────────────────── -->
+    <main class="flex-1 flex flex-col p-4 sm:p-6 md:p-8 max-w-7xl w-full mx-auto overflow-y-auto relative">
+      <div id="toast-bar" class="hidden fixed top-6 right-6 z-50 p-4 rounded-2xl border text-xs font-bold shadow-2xl backdrop-blur-md transition-all"></div>
+
+      <header class="flex items-center justify-between mb-8 gap-4 md:hidden">
+        <div class="flex items-center gap-3">
+          <button id="mobile-sidebar-toggle" class="w-10 h-10 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div>
+            <h1 class="font-heading font-extrabold text-2xl tracking-tight">Admin Center</h1>
+          </div>
+        </div>
+      </header>
+
+      <!-- ── TAB 1: Verification Queue ──── -->
+      <div id="tab-queue" class="space-y-8">
+        <div>
+          <span class="badge-minimal mb-2 text-[10px]">Onboarding</span>
+          <h1 class="text-3xl font-extrabold font-heading tracking-tight">Provider Verification</h1>
+          <p class="text-xs opacity-60 mt-1">Review and approve hospital and laboratory registrations</p>
+        </div>
+        
+        <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <div class="flat-panel rounded-[2rem] p-6 sm:p-8">
+                <h3 class="font-heading font-bold text-lg mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-hospital text-blue-500"></i> Pending Hospitals
+                </h3>
+                <div id="hospitals-list" class="space-y-4"></div>
+            </div>
+            <div class="flat-panel rounded-[2rem] p-6 sm:p-8">
+                <h3 class="font-heading font-bold text-lg mb-6 flex items-center gap-2">
+                    <i class="fa-solid fa-flask text-purple-500"></i> Pending Labs
+                </h3>
+                <div id="labs-list" class="space-y-4"></div>
+            </div>
+        </div>
+      </div>
+
+      <!-- ── TAB 2: Grid Moderation ──── -->
+      <div id="tab-mod" class="space-y-8 hidden">
+        <div>
+          <span class="badge-minimal mb-2 text-[10px]">Access Control</span>
+          <h1 class="text-3xl font-extrabold font-heading tracking-tight">System Moderation</h1>
+          <p class="text-xs opacity-60 mt-1">Manage users, providers, and overall system access</p>
+        </div>
+
+        <div class="flat-panel p-4 rounded-3xl mb-6">
+            <form id="mod-search-form" class="flex flex-col sm:flex-row gap-4">
+                <select id="mod-search-type" class="p-3 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:border-black/30 dark:focus:border-white/30 transition-colors">
+                    <option value="patient">Patient Phone / ID</option>
+                    <option value="provider">Provider Name</option>
+                </select>
+                <div class="flex-1 relative w-full">
+                    <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 opacity-50"></i>
+                    <input type="text" id="mod-search-input" placeholder="Search..." class="w-full pl-12 pr-4 py-3 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 focus:outline-none focus:border-black/30 dark:focus:border-white/30 transition-colors" required>
+                </div>
+                <button type="submit" class="btn-primary w-full sm:w-auto px-6 py-3 rounded-2xl font-bold flex items-center justify-center gap-2 shrink-0">
+                    <i class="fa-solid fa-search mr-1"></i> Search
+                </button>
+            </form>
+        </div>
+        
+        <div class="flat-panel rounded-3xl overflow-hidden">
+            <div id="mod-results" class="p-6">
+                <p class="opacity-50 text-center py-4 text-sm">Search for users to manage them.</p>
+            </div>
+        </div>
+      </div>
+
+      <!-- ── TAB 3: Ads Moderation Hub ──── -->
+      <div id="tab-ads" class="space-y-8 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+              <span class="badge-minimal mb-2 text-[10px]">Monetization</span>
+              <h1 class="text-3xl font-extrabold font-heading tracking-tight">Ads Moderation</h1>
+              <p class="text-xs opacity-60 mt-1">Approve, reject, or directly publish ad campaigns.</p>
+            </div>
+            <button id="open-direct-ad-btn" class="btn-primary px-5 py-3 text-xs font-bold rounded-xl flex items-center gap-2 shrink-0">
+                <i class="fa-solid fa-plus"></i> Publish Direct Ad
+            </button>
+        </div>
+
+        <!-- Ads Queue -->
+        <div class="flat-panel rounded-[2rem] p-6 sm:p-8">
+            <h3 class="font-heading font-bold text-lg mb-6">Advertiser Submission Queue</h3>
+            <div id="ads-queue-list" class="space-y-5">
+                <p class="text-center py-4 opacity-50 text-sm">Loading campaigns...</p>
+            </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 backdrop-blur-sm z-30 hidden md:hidden"></div>
+
+  <!-- ── Reject Reason Modal ────────────────────────────────────── -->
+  <div id="reject-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-md p-4">
+      <div class="flat-panel bg-white dark:bg-black rounded-3xl shadow-2xl max-w-md w-full p-8 relative border-2 border-red-500/20">
+          <button id="close-reject-modal" class="absolute top-6 right-6 opacity-50 hover:opacity-100 transition-opacity">
+              <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+          <h3 class="text-2xl font-bold font-heading mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-circle-xmark text-red-500"></i> Reject Campaign
+          </h3>
+          <p class="text-xs opacity-60 mb-6">Provide a reason for rejection. This will be stored with the campaign record.</p>
+          <textarea id="reject-reason-input" rows="4" placeholder="e.g. Missing product certifications, misleading health claims..." class="w-full p-4 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:border-red-500/50 resize-none transition-colors"></textarea>
+          <div class="flex gap-3 mt-6">
+              <button id="cancel-reject-btn" class="flex-1 py-3 rounded-2xl btn-translucent text-sm font-bold">Cancel</button>
+              <button id="confirm-reject-btn" class="flex-1 py-3 rounded-2xl bg-red-500 text-white hover:bg-red-600 text-sm font-bold shadow-lg shadow-red-500/20 transition-all">Confirm Rejection</button>
+          </div>
+      </div>
+  </div>
+
+  <!-- ── Direct Admin Ad Creation Modal ────────────────────────── -->
+  <div id="direct-ad-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-md p-4">
+      <div class="flat-panel bg-white dark:bg-black rounded-3xl shadow-2xl max-w-xl w-full p-8 relative border-2 border-emerald-500/20 overflow-y-auto max-h-[90vh]">
+          <button id="close-direct-ad-modal" class="absolute top-6 right-6 opacity-50 hover:opacity-100 transition-opacity">
+              <i class="fa-solid fa-xmark text-lg"></i>
+          </button>
+          <h3 class="text-2xl font-bold font-heading mb-2 flex items-center gap-2">
+              <i class="fa-solid fa-bullhorn text-emerald-500"></i> Publish Official Ad
+          </h3>
+          <p class="text-xs opacity-60 mb-6">Create and immediately publish an approved sponsored ad directly to the Patient Shop.</p>
+          <form id="direct-ad-form" class="space-y-5">
+              <div>
+                  <label class="block text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1.5">Ad Title / Headline *</label>
+                  <input type="text" id="dad-title" required placeholder="e.g. Apollo Advanced Genomics" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:border-emerald-500/50">
+              </div>
+              <div>
+                  <label class="block text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1.5">Description / Tagline *</label>
+                  <textarea id="dad-description" rows="3" required placeholder="Brief description..." class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:border-emerald-500/50 resize-none"></textarea>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                      <label class="block text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1.5">Company Name</label>
+                      <input type="text" id="dad-company" placeholder="e.g. Swasthya Sathi Official" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:border-emerald-500/50">
+                  </div>
+                  <div>
+                      <label class="block text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1.5">Category *</label>
+                      <select id="dad-category" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:border-emerald-500/50">
+                          <option value="pharma">Pharma & Biotech</option>
+                          <option value="diagnostics">Diagnostics</option>
+                          <option value="devices">Medical Devices</option>
+                          <option value="hospitals">Hospitals</option>
+                          <option value="wellness">Wellness</option>
+                      </select>
+                  </div>
+              </div>
+              <div>
+                  <label class="block text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1.5">Placement Section *</label>
+                  <select id="dad-placement" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:border-emerald-500/50">
+                      <option value="hero_banner">Patient Shop — Hero Deals Banner</option>
+                      <option value="partner_card">Patient Shop — Sponsored Partner Card</option>
+                      <option value="product_item">Patient Shop — Health Store Product</option>
+                      <option value="doctor_spotlight">Patient Shop — Doctor Spotlight</option>
+                  </select>
+              </div>
+              <div>
+                  <label class="block text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1.5">Target URL *</label>
+                  <input type="url" id="dad-url" required placeholder="https://partner.com/offer" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:border-emerald-500/50">
+              </div>
+              
+              <div id="dad-status" class="hidden"></div>
+              
+              <div class="pt-2">
+                <button type="submit" class="w-full py-4 bg-emerald-500 hover:bg-emerald-600 text-white rounded-2xl text-sm font-bold transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-rocket"></i> Publish Ad Immediately (Approved & Live)
+                </button>
+              </div>
+          </form>
+      </div>
+  </div>
+
+  <script type="module">
+      import { requireRole, signOutUser, getToken } from '../js/auth-guard.js';
+      import { auth, db, API_BASE } from '../js/firebase-config.js';
+      import { toast, initDarkMode } from '../js/utils.js';
+      import { getAdvertisements, approveAdvertisement, rejectAdvertisement, createAdvertisement, subscribeToAllAds } from '../js/ads-config.js';
+      import { collection, onSnapshot, query, where, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      // Theme toggle
+      const themeToggleBtn = document.getElementById('theme-toggle');
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+          document.documentElement.classList.add('dark');
+      } else {
+          document.documentElement.classList.remove('dark');
+      }
+      themeToggleBtn?.addEventListener('click', () => {
+          document.documentElement.classList.toggle('dark');
+          localStorage.theme = document.documentElement.classList.contains('dark') ? 'dark' : 'light';
+      });
+
+      // Mobile Sidebar Toggle
+      const mobileToggle = document.getElementById('mobile-sidebar-toggle');
+      const closeSidebarBtn = document.getElementById('close-sidebar-btn');
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      
+      function toggleSidebar() {
+          sidebar.classList.toggle('-translate-x-full');
+          overlay.classList.toggle('hidden');
+      }
+      if (mobileToggle) mobileToggle.addEventListener('click', toggleSidebar);
+      if (closeSidebarBtn) closeSidebarBtn.addEventListener('click', toggleSidebar);
+      if (overlay) overlay.addEventListener('click', toggleSidebar);
+
+      // ── Tab Switching ─────────────────────────────────────────────
+      const navQueue = document.getElementById('nav-queue');
+      const navMod   = document.getElementById('nav-mod');
+      const navAds   = document.getElementById('nav-ads');
+      const tabQueue = document.getElementById('tab-queue');
+      const tabMod   = document.getElementById('tab-mod');
+      const tabAds   = document.getElementById('tab-ads');
+
+      function switchTab(activeNav, activeTab) {
+          [navQueue, navMod, navAds].forEach(btn => {
+              btn.classList.remove('active');
+          });
+          [tabQueue, tabMod, tabAds].forEach(t => t.classList.add('hidden'));
+
+          activeNav.classList.add('active');
+          activeTab.classList.remove('hidden');
+          
+          if(window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
+              toggleSidebar();
+          }
+      }
+
+      navQueue.addEventListener('click', () => switchTab(navQueue, tabQueue));
+      navMod.addEventListener('click',   () => switchTab(navMod,   tabMod));
+      navAds.addEventListener('click',   () => switchTab(navAds,   tabAds));
+
+      // ── Auth Guard ────────────────────────────────────────────────
+      requireRole(['admin'], (user, userData) => {
+          document.getElementById('logout-btn').addEventListener('click', signOutUser);
+          setupListeners();
+          setupAdsQueueListener();
+      });
+
+      // ── Real-time Ads Queue Listener ──────────────────────────────
+      function setupAdsQueueListener() {
+          subscribeToAllAds((ads) => {
+              const container = document.getElementById('ads-queue-list');
+              if (!container) return;
+
+              const pendingCount = ads.filter(ad => ad.status === 'pending').length;
+              const badge = document.getElementById('ads-pending-count');
+              if (badge) badge.textContent = pendingCount;
+
+              container.innerHTML = '';
+              if (!ads || ads.length === 0) {
+                  container.innerHTML = '<p class="text-center py-8 opacity-50 text-sm">No advertisement submissions found.</p>';
+                  return;
+              }
+
+              ads.forEach(ad => {
+                  const card = document.createElement('div');
+                  card.className = 'p-5 border border-black/10 dark:border-white/10 rounded-2xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-black/5 dark:bg-white/5 transition-colors';
+
+                  let badgeHtml = `<span class="badge-minimal bg-amber-500/20 text-amber-600 dark:text-amber-400 border-none px-2 py-1 text-[10px]">Pending</span>`;
+                  if (ad.status === 'approved') badgeHtml = `<span class="badge-minimal bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-none px-2 py-1 text-[10px]">Approved & Live</span>`;
+                  else if (ad.status === 'rejected') badgeHtml = `<span class="badge-minimal bg-red-500/20 text-red-600 dark:text-red-400 border-none px-2 py-1 text-[10px]">Rejected</span>`;
+
+                  const rejectionNote = ad.rejectionReason
+                      ? `<p class="text-[10px] text-red-500 mt-2 font-mono">Reason: ${ad.rejectionReason}</p>` : '';
+
+                  card.innerHTML = `
+                      <div class="space-y-2 flex-1">
+                          <div class="flex items-center gap-3 flex-wrap">
+                              <span class="font-bold text-sm sm:text-base font-heading">${ad.title}</span>
+                              ${badgeHtml}
+                          </div>
+                          <p class="text-xs opacity-70 leading-relaxed max-w-2xl">${ad.description}</p>
+                          ${rejectionNote}
+                          <div class="text-[10px] opacity-60 flex flex-wrap gap-x-4 gap-y-2 mt-2 font-mono">
+                              <span><i class="fa-solid fa-building mr-1"></i> ${ad.companyName}</span>
+                              <span class="uppercase"><i class="fa-solid fa-folder-open mr-1"></i> ${ad.category}</span>
+                              <span class="capitalize"><i class="fa-solid fa-location-dot mr-1"></i> ${ad.placement?.replace(/_/g, ' ')}</span>
+                              ${ad.targetUrl ? `<a href="${ad.targetUrl}" target="_blank" class="text-blue-500 dark:text-blue-400 hover:underline"><i class="fa-solid fa-link mr-1"></i> Visit URL</a>` : ''}
+                          </div>
+                      </div>
+                      <div class="flex items-center gap-2 shrink-0 self-end md:self-auto mt-4 md:mt-0">
+                          ${ad.status !== 'approved' ? `<button onclick="window.handleApproveAd('${ad.id}')" class="px-4 py-2 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/30 rounded-xl text-xs font-bold transition-colors">Approve</button>` : ''}
+                          ${ad.status !== 'rejected' ? `<button onclick="window.openRejectModal('${ad.id}')" class="px-4 py-2 bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/30 rounded-xl text-xs font-bold transition-colors">Reject</button>` : ''}
+                      </div>
+                  `;
+                  container.appendChild(card);
+              });
+          });
+      }
+
+      window.handleApproveAd = async (adId) => {
+          await approveAdvertisement(adId);
+          toast('Advertisement approved and published!', 'success');
+      };
+
+      // ── Reject Modal ──────────────────────────────────────────────
+      let pendingRejectId = null;
+      const rejectModal       = document.getElementById('reject-modal');
+      const closeRejectModal  = document.getElementById('close-reject-modal');
+      const cancelRejectBtn   = document.getElementById('cancel-reject-btn');
+      const confirmRejectBtn  = document.getElementById('confirm-reject-btn');
+      const rejectReasonInput = document.getElementById('reject-reason-input');
+
+      window.openRejectModal = (adId) => {
+          pendingRejectId = adId;
+          rejectReasonInput.value = '';
+          rejectModal.classList.remove('hidden');
+          rejectModal.classList.add('flex');
+      };
+
+      function closeRejectModalFn() {
+          rejectModal.classList.add('hidden');
+          rejectModal.classList.remove('flex');
+          pendingRejectId = null;
+      }
+
+      closeRejectModal.addEventListener('click', closeRejectModalFn);
+      cancelRejectBtn.addEventListener('click', closeRejectModalFn);
+      rejectModal.addEventListener('click', (e) => { if (e.target === rejectModal) closeRejectModalFn(); });
+
+      confirmRejectBtn.addEventListener('click', async () => {
+          if (!pendingRejectId) return;
+          const reason = rejectReasonInput.value.trim() || 'Rejected by Admin';
+          confirmRejectBtn.textContent = 'Rejecting...';
+          confirmRejectBtn.disabled = true;
+          await rejectAdvertisement(pendingRejectId, reason);
+          toast('Campaign rejected.', 'error');
+          closeRejectModalFn();
+          confirmRejectBtn.textContent = 'Confirm Rejection';
+          confirmRejectBtn.disabled = false;
+      });
+
+      // ── Direct Admin Ad Creation Modal ────────────────────────────
+      const openDirectAdBtn     = document.getElementById('open-direct-ad-btn');
+      const directAdModal       = document.getElementById('direct-ad-modal');
+      const closeDirectAdModal  = document.getElementById('close-direct-ad-modal');
+      const directAdForm        = document.getElementById('direct-ad-form');
+      const dadStatus           = document.getElementById('dad-status');
+
+      openDirectAdBtn.addEventListener('click', () => {
+          directAdModal.classList.remove('hidden');
+          directAdModal.classList.add('flex');
+      });
+
+      function closeDirectAdModalFn() {
+          directAdModal.classList.add('hidden');
+          directAdModal.classList.remove('flex');
+      }
+
+      closeDirectAdModal.addEventListener('click', closeDirectAdModalFn);
+      directAdModal.addEventListener('click', (e) => { if (e.target === directAdModal) closeDirectAdModalFn(); });
+
+      directAdForm.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const submitBtn = directAdForm.querySelector('button[type="submit"]');
+          submitBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Publishing...';
+          submitBtn.disabled = true;
+
+          const adData = {
+              title:       document.getElementById('dad-title').value.trim(),
+              description: document.getElementById('dad-description').value.trim(),
+              companyName: document.getElementById('dad-company').value.trim() || 'Swasthya Sathi Official',
+              category:    document.getElementById('dad-category').value,
+              placement:   document.getElementById('dad-placement').value,
+              targetUrl:   document.getElementById('dad-url').value.trim(),
+              advertiserUid: 'admin_direct',
+              status: 'approved',
+          };
+
+          try {
+              const newAd = await createAdvertisement(adData);
+              await approveAdvertisement(newAd.id);
+
+              dadStatus.className = 'p-3 rounded-xl bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-bold text-center mt-4';
+              dadStatus.textContent = '✓ Ad published and live on Patient Shop!';
+              dadStatus.classList.remove('hidden');
+
+              toast('Direct admin ad published successfully!', 'success');
+              setTimeout(() => {
+                  closeDirectAdModalFn();
+                  dadStatus.classList.add('hidden');
+                  directAdForm.reset();
+              }, 2000);
+          } catch(err) {
+              toast('Error publishing direct ad.', 'error');
+          } finally {
+              submitBtn.innerHTML = '<i class="fa-solid fa-rocket"></i> Publish Ad Immediately (Approved & Live)';
+              submitBtn.disabled = false;
+          }
+      });
+
+      // ── Provider Verification (Queue Tab) ─────────────────────────
+      function setupListeners() {
+          onSnapshot(collection(db, 'hospitals'), (snapshot) => {
+              const pending = [];
+              snapshot.forEach(doc => {
+                  const data = doc.data();
+                  if (!data.verified) pending.push({ id: doc.id, type: 'hospital', ...data });
+              });
+              renderPending('hospitals-list', pending);
+              updateBadge();
+          });
+
+          onSnapshot(collection(db, 'laboratories'), (snapshot) => {
+              const pending = [];
+              snapshot.forEach(doc => {
+                  const data = doc.data();
+                  if (!data.verified) pending.push({ id: doc.id, type: 'lab', ...data });
+              });
+              renderPending('labs-list', pending);
+              updateBadge();
+          });
+      }
+
+      function updateBadge() {
+          const hList = document.getElementById('hospitals-list');
+          const lList = document.getElementById('labs-list');
+          let count = 0;
+          if (hList && !hList.querySelector('.empty-state')) count += hList.children.length;
+          if (lList && !lList.querySelector('.empty-state')) count += lList.children.length;
+          document.getElementById('pending-count').textContent = count;
+      }
+
+      function renderPending(containerId, items) {
+          const container = document.getElementById(containerId);
+          container.innerHTML = '';
+          if (items.length === 0) {
+              container.innerHTML = `<p class="text-xs opacity-50 text-center py-6 empty-state italic">No pending verifications.</p>`;
+              return;
+          }
+          items.forEach(item => {
+              const div = document.createElement('div');
+              div.className = 'flat-panel p-5 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/5 dark:border-white/5 hover:border-black/20 dark:hover:border-white/20 transition-colors';
+              div.innerHTML = `
+                  <div class="flex justify-between items-start mb-3 gap-2">
+                      <div>
+                          <h4 class="font-bold text-sm font-heading">${item.name || 'Unnamed'}</h4>
+                          <p class="text-[10px] opacity-60 font-mono mt-0.5">${item.email || ''}</p>
+                      </div>
+                      <span class="badge-minimal text-[10px] bg-blue-500/20 text-blue-600 dark:text-blue-400 border-none uppercase">${item.type}</span>
+                  </div>
+                  <div class="text-[10px] opacity-70 mb-4 space-y-1 font-mono">
+                      <p><span class="opacity-70">Reg/License:</span> ${item.registrationNumber || item.licenseNumber || 'N/A'}</p>
+                      <p class="truncate"><span class="opacity-70">Address:</span> ${item.address || 'N/A'}</p>
+                  </div>
+                  <div class="flex gap-2">
+                      <button onclick="window.approveProvider('${item.id}', '${item.type}')" class="flex-1 bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/30 py-2 px-3 rounded-xl text-xs font-bold transition-colors">Approve</button>
+                      <button onclick="window.rejectProvider('${item.id}', '${item.type}')" class="flex-1 bg-red-500/20 text-red-600 dark:text-red-400 hover:bg-red-500/30 py-2 px-3 rounded-xl text-xs font-bold transition-colors">Reject</button>
+                  </div>
+              `;
+              container.appendChild(div);
+          });
+      }
+
+      window.approveProvider = async (uid, role) => {
+          try {
+              const token = await getToken();
+              const res = await fetch(`${API_BASE}/admin/verify/${uid}`, {
+                  method: 'PUT',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                  body: JSON.stringify({ role })
+              });
+              if (!res.ok) throw new Error('Verification failed');
+              toast('Provider approved successfully!', 'success');
+          } catch (err) {
+              toast('Error approving provider.', 'error');
+          }
+      };
+
+      window.rejectProvider = async (uid, role) => {
+          if (!confirm('Are you sure you want to reject and delete this provider?')) return;
+          try {
+              const token = await getToken();
+              const res = await fetch(`${API_BASE}/admin/reject/${uid}`, {
+                  method: 'DELETE',
+                  headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                  body: JSON.stringify({ role })
+              });
+              if (!res.ok) throw new Error('Rejection failed');
+              toast('Provider rejected.', 'info');
+          } catch (err) {
+              toast('Error rejecting provider.', 'error');
+          }
+      };
+
+      // ── Grid Moderation (Tab 2) ───────────────────────────────────
+      document.getElementById('mod-search-form').addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const type = document.getElementById('mod-search-type').value;
+          const input = document.getElementById('mod-search-input').value.trim();
+          const container = document.getElementById('mod-results');
+          container.innerHTML = '<p class="opacity-50 text-center py-4 text-sm"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Searching...</p>';
+
+          try {
+              let results = [];
+              if (type === 'patient') {
+                  const pRef = await getDocs(query(collection(db, 'patients'), where('__name__', '==', input)));
+                  pRef.forEach(d => results.push({ id: d.id, collection: 'patients', ...d.data() }));
+                  if (results.length === 0) {
+                      const pPhone = await getDocs(query(collection(db, 'patients'), where('personalInfo.phone', '==', input)));
+                      pPhone.forEach(d => results.push({ id: d.id, collection: 'patients', ...d.data() }));
+                  }
+              } else {
+                  const hRef = await getDocs(query(collection(db, 'hospitals'), where('name', '>=', input), where('name', '<=', input + '\uf8ff')));
+                  hRef.forEach(d => results.push({ id: d.id, collection: 'hospitals', ...d.data() }));
+                  const lRef = await getDocs(query(collection(db, 'laboratories'), where('name', '>=', input), where('name', '<=', input + '\uf8ff')));
+                  lRef.forEach(d => results.push({ id: d.id, collection: 'laboratories', ...d.data() }));
+              }
+
+              if (results.length === 0) {
+                  container.innerHTML = '<p class="opacity-50 text-center py-6 text-sm italic">No users found.</p>';
+                  return;
+              }
+
+              container.innerHTML = '<div class="divide-y divide-black/10 dark:divide-white/10"></div>';
+              const divList = container.querySelector('div');
+
+              results.forEach(user => {
+                  const row = document.createElement('div');
+                  row.className = 'py-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 hover:bg-black/5 dark:hover:bg-white/5 transition-colors rounded-xl px-4';
+                  let infoHtml = '';
+                  if (user.collection === 'patients') {
+                      infoHtml = `
+                          <div>
+                              <p class="font-bold text-sm">${user.personalInfo?.fullName || 'Unknown'}</p>
+                              <p class="text-[10px] opacity-60 font-mono mt-0.5">ID: ${user.id} | Phone: ${user.personalInfo?.phone || 'N/A'}</p>
+                              <span class="badge-minimal text-[10px] bg-blue-500/20 text-blue-600 dark:text-blue-400 border-none mt-2">Patient</span>
+                          </div>`;
+                  } else {
+                      infoHtml = `
+                          <div>
+                              <p class="font-bold text-sm">${user.name || 'Unknown'}</p>
+                              <p class="text-[10px] opacity-60 font-mono mt-0.5">${user.email || ''}</p>
+                              <span class="badge-minimal text-[10px] border-none mt-2 ${user.verified ? 'bg-emerald-500/20 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/20 text-amber-600 dark:text-amber-400'}">
+                                  ${user.collection === 'hospitals' ? 'Hospital' : 'Lab'} — ${user.verified ? 'Verified' : 'Pending'}
+                              </span>
+                          </div>`;
+                  }
+                  row.innerHTML = `${infoHtml}
+                      <button onclick="window.deleteUser('${user.id}')" class="text-red-500 hover:text-red-600 text-xs font-bold px-4 py-2 border border-red-500/20 rounded-xl hover:bg-red-500/10 transition-colors self-end sm:self-auto shrink-0">
+                          <i class="fa-solid fa-trash mr-1"></i>Delete
+                      </button>`;
+                  divList.appendChild(row);
+              });
+
+          } catch (err) {
+              container.innerHTML = '<p class="text-red-500 text-center py-4 text-sm">Error searching users.</p>';
+          }
+      });
+
+      window.deleteUser = async (uid) => {
+          if (!confirm('WARNING: This will permanently delete this user account. Proceed?')) return;
+          try {
+              const token = await getToken();
+              const res = await fetch(`${API_BASE}/users/${uid}`, {
+                  method: 'DELETE',
+                  headers: { 'Authorization': `Bearer ${token}` }
+          });
+              if (!res.ok) throw new Error('Deletion failed');
+              toast('User deleted successfully.', 'success');
+              document.getElementById('mod-search-form').dispatchEvent(new Event('submit'));
+          } catch (err) {
+              toast('Error deleting user.', 'error');
+          }
+      };
+  </script>
+</body>
+</html>
