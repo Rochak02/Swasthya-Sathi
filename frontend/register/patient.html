@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Registration — Swasthya Sathi</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="../css/custom.css">
+</head>
+<body class="relative bg-white dark:bg-black text-black dark:text-white transition-colors duration-200 antialiased min-h-screen flex flex-col justify-between py-6">
+
+  <!-- ── Header ───────────────────────────────────────────────────────────── -->
+  <header class="sticky top-4 z-50 px-4 sm:px-8 max-w-5xl mx-auto w-full">
+    <nav class="navbar-pill rounded-full px-6 py-3.5 flex items-center justify-between">
+      <a href="../index.html" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center text-black dark:text-white">
+          <i class="fa-solid fa-heart-pulse text-base"></i>
+        </div>
+        <span class="font-heading font-extrabold text-lg tracking-tight text-black dark:text-white">Swasthya Sathi</span>
+      </a>
+
+      <div class="flex items-center gap-3">
+        <button id="theme-toggle" type="button" class="w-9 h-9 rounded-full flex items-center justify-center border border-black/10 dark:border-white/10 text-sm">
+          🌙
+        </button>
+        <a href="../login.html" class="px-4 py-2 btn-translucent text-xs font-bold">Already Registered? Login</a>
+      </div>
+    </nav>
+  </header>
+
+  <!-- ── Main Single Scrollable Form Card ──────────────────────────────────── -->
+  <main class="py-8 px-4 sm:px-8 max-w-4xl mx-auto w-full flex-1">
+    
+    <div class="flat-panel rounded-[2.5rem] p-8 sm:p-14 shadow-2xl relative">
+      
+      <!-- Header -->
+      <div class="text-center mb-10">
+        <span class="badge-minimal mb-3">Patient Portal</span>
+        <h1 class="text-3xl sm:text-5xl font-bold font-heading text-black dark:text-white">Patient Digital Health ID Registration</h1>
+        <p class="text-neutral-500 dark:text-neutral-400 text-xs sm:text-sm mt-3">Complete the single form below to generate your universal Swasthya Sathi health profile.</p>
+      </div>
+
+      <!-- Notification Toast Container -->
+      <div id="toast-msg" class="hidden mb-8 p-4 rounded-2xl text-xs font-semibold text-center border"></div>
+
+      <!-- Single Scrollable Form -->
+      <form id="patient-form" class="space-y-8">
+        
+        <!-- SECTION 1: Account Info -->
+        <div class="space-y-4">
+          <h3 class="font-heading font-bold text-xl text-black dark:text-white border-b border-black/10 dark:border-white/10 pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-user-shield text-sm"></i>
+            <span>1. Account & Security</span>
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">Email Address *</label>
+              <input type="email" id="email" required placeholder="patient@example.com" class="w-full px-4 py-3.5 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">Password *</label>
+              <div class="relative">
+                <input type="password" id="password" required placeholder="Minimum 6 characters" class="w-full px-4 py-3.5 pr-12 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+                <button type="button" id="toggle-password" class="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-neutral-400 hover:text-black dark:hover:text-white">Show</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SECTION 2: Personal Details -->
+        <div class="space-y-4">
+          <h3 class="font-heading font-bold text-xl text-black dark:text-white border-b border-black/10 dark:border-white/10 pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-address-card text-sm"></i>
+            <span>2. Personal Profile</span>
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">Full Legal Name *</label>
+              <input type="text" id="name" required placeholder="John Doe" class="w-full px-4 py-3.5 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">Date of Birth *</label>
+              <input type="date" id="dob" required class="w-full px-4 py-3.5 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">Gender *</label>
+              <select id="gender" class="w-full px-4 py-3.5 rounded-xl bg-white dark:bg-black border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+                <option value="Prefer not to say">Prefer not to say</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">Blood Group *</label>
+              <select id="blood-group" class="w-full px-4 py-3.5 rounded-xl bg-white dark:bg-black border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+                <option value="Unknown">Unknown</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">Phone Number *</label>
+              <input type="tel" id="phone" required placeholder="+91 9876543210" class="w-full px-4 py-3.5 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">Residential Address</label>
+            <textarea id="address" rows="2" placeholder="House/Flat No., Street, City, State, Pincode" class="w-full px-4 py-3.5 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white"></textarea>
+          </div>
+        </div>
+
+        <!-- SECTION 3: Medical Info & Emergency Contact -->
+        <div class="space-y-4">
+          <h3 class="font-heading font-bold text-xl text-black dark:text-white border-b border-black/10 dark:border-white/10 pb-3 flex items-center gap-2">
+            <i class="fa-solid fa-notes-medical text-sm"></i>
+            <span>3. Medical & Emergency Info</span>
+          </h3>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">Known Allergies</label>
+              <input type="text" id="allergies" placeholder="e.g. Penicillin, Peanuts (or None)" class="w-full px-4 py-3.5 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">Chronic Conditions</label>
+              <input type="text" id="chronic" placeholder="e.g. Diabetes, Asthma (or None)" class="w-full px-4 py-3.5 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">Emergency Contact Name *</label>
+              <input type="text" id="emg-name" required placeholder="Primary Contact Person" class="w-full px-4 py-3.5 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">Relation *</label>
+              <input type="text" id="emg-relation" required placeholder="Spouse, Parent, Sibling" class="w-full px-4 py-3.5 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1.5">Emergency Phone *</label>
+              <input type="tel" id="emg-phone" required placeholder="+91 9876543210" class="w-full px-4 py-3.5 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="pt-6 border-t border-black/10 dark:border-white/10">
+          <button type="submit" id="submit-btn" class="w-full py-4 btn-primary text-sm font-bold flex items-center justify-center gap-2">
+            <span id="btn-text">Register & Generate Health ID</span>
+            <i class="fa-solid fa-check text-xs"></i>
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+
+  </main>
+
+  <!-- ── Footer ──────────────────────────────────────────────────────────── -->
+  <footer class="py-6 px-4 text-center text-xs text-neutral-500 border-t border-black/10 dark:border-white/10">
+    &copy; 2026 Swasthya Sathi. All rights reserved.
+  </footer>
+
+  <script type="module">
+    import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { auth } from '../js/firebase-config.js';
+    import { initDarkMode } from '../js/utils.js';
+
+    // Theme initialization (persists theme selected on landing page)
+    initDarkMode();
+
+    const toastMsg = document.getElementById('toast-msg');
+    const togglePassword = document.getElementById('toggle-password');
+    const passwordInput = document.getElementById('password');
+
+    togglePassword.addEventListener('click', () => {
+      const isPass = passwordInput.type === 'password';
+      passwordInput.type = isPass ? 'text' : 'password';
+      togglePassword.textContent = isPass ? 'Hide' : 'Show';
+    });
+
+    function showToast(msg, isError = false) {
+      toastMsg.classList.remove('hidden', 'bg-red-500/10', 'border-red-500/30', 'text-red-500', 'bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-500');
+      if (isError) {
+        toastMsg.classList.add('bg-red-500/10', 'border-red-500/30', 'text-red-500');
+      } else {
+        toastMsg.classList.add('bg-emerald-500/10', 'border-emerald-500/30', 'text-emerald-500');
+      }
+      toastMsg.textContent = msg;
+    }
+
+    // Form Submission
+    document.getElementById('patient-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const submitBtn = document.getElementById('submit-btn');
+      const btnText = document.getElementById('btn-text');
+
+      const email = document.getElementById('email').value;
+      const password = passwordInput.value;
+      const name = document.getElementById('name').value;
+      const dob = document.getElementById('dob').value;
+      const gender = document.getElementById('gender').value;
+      const bloodGroup = document.getElementById('blood-group').value;
+      const phone = document.getElementById('phone').value;
+      const address = document.getElementById('address').value;
+      const allergies = document.getElementById('allergies').value;
+      const chronicConditions = document.getElementById('chronic').value;
+      const emgName = document.getElementById('emg-name').value;
+      const emgRelation = document.getElementById('emg-relation').value;
+      const emgPhone = document.getElementById('emg-phone').value;
+
+      if (password.length < 6) {
+        showToast("Password must be at least 6 characters.", true);
+        return;
+      }
+
+      try {
+        submitBtn.disabled = true;
+        btnText.textContent = "Generating Digital Health ID...";
+
+        const payload = {
+          email, password, name, dob, gender, bloodGroup,
+          phone, address, allergies, chronicConditions,
+          emgName, emgRelation, emgPhone
+        };
+
+        const res = await fetch("http://localhost:8000/api/register/patient", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData.detail || "Registration failed on server.");
+        }
+
+        // Login using Firebase Auth directly so the auth state is preserved
+        await signInWithEmailAndPassword(auth, email, password);
+
+        showToast("Registration successful! Redirecting to Patient Dashboard...", false);
+
+        setTimeout(() => {
+          window.location.href = '../patient/dashboard.html';
+        }, 1500);
+
+      } catch (err) {
+        console.error("Patient Registration Error:", err);
+        showToast(err.message || "Failed to register. Please try again.", true);
+        submitBtn.disabled = false;
+        btnText.textContent = "Register & Generate Health ID";
+      }
+    });
+  </script>
+</body>
+</html>
