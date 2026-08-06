@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Swasthya Sathi — Universal Digital Healthcare Companion</title>
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+  
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="css/custom.css">
+</head>
+<body class="relative bg-white dark:bg-black text-black dark:text-white transition-colors duration-200 antialiased selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black">
+
+  <!-- Outer Wrapper -->
+  <div class="relative z-10 flex flex-col min-h-screen">
+
+    <!-- ── Floating Translucent Pill Navbar ─────────────────────────────────── -->
+    <header class="sticky top-4 z-50 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+      <nav class="navbar-pill rounded-full px-6 py-3.5 flex items-center justify-between transition-all duration-300">
+        
+        <!-- Logo & Branding -->
+        <a href="index.html" class="flex items-center gap-3 group">
+          <div class="w-10 h-10 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center text-black dark:text-white group-hover:scale-105 transition-transform">
+            <i class="fa-solid fa-heart-pulse text-lg"></i>
+          </div>
+          <div class="flex flex-col">
+            <span class="font-heading font-extrabold text-xl tracking-tight text-black dark:text-white flex items-center gap-1.5">
+              Swasthya Sathi
+            </span>
+            <span class="text-[9px] font-bold uppercase tracking-widest text-neutral-500 dark:text-neutral-400">Health Companion</span>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <div class="hidden md:flex items-center gap-8 text-sm font-semibold text-neutral-700 dark:text-neutral-300">
+          <a href="#about" class="hover:text-black dark:hover:text-white transition-colors">About Us</a>
+          <a href="#portals" class="hover:text-black dark:hover:text-white transition-colors">Ecosystem Portals</a>
+          <a href="#ads" class="hover:text-black dark:hover:text-white transition-colors">Healthcare Ads</a>
+          <a href="#how-it-works" class="hover:text-black dark:hover:text-white transition-colors">How It Works</a>
+        </div>
+
+        <!-- Right Action Buttons -->
+        <div class="flex items-center gap-3">
+          <!-- Dark Mode Toggle Button -->
+          <button id="theme-toggle" type="button" class="w-10 h-10 rounded-full flex items-center justify-center border border-black/10 dark:border-white/10 hover:border-black/30 dark:hover:border-white/30 transition-colors text-base cursor-pointer" title="Toggle Theme">
+            🌙
+          </button>
+
+          <!-- Login Button -->
+          <a href="login.html" class="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 btn-primary text-sm shadow-sm">
+            <i class="fa-solid fa-right-to-bracket text-xs"></i>
+            <span data-i18n="nav_login">Login</span>
+          </a>
+
+          <!-- Mobile Menu Button -->
+          <button id="mobile-menu-btn" class="md:hidden w-10 h-10 rounded-full flex items-center justify-center text-black dark:text-white border border-black/10 dark:border-white/10">
+            <i class="fa-solid fa-bars text-base"></i>
+          </button>
+        </div>
+
+      </nav>
+
+      <!-- Mobile Dropdown Menu -->
+      <div id="mobile-menu" class="hidden md:hidden mt-3 flat-panel rounded-3xl p-6 space-y-4 font-semibold text-black dark:text-white">
+        <a href="#about" class="block hover:opacity-70" data-i18n="nav_home">About Us</a>
+        <a href="#portals" class="block hover:opacity-70" data-i18n="nav_features">Ecosystem Portals</a>
+        <a href="#ads" class="block hover:opacity-70">Healthcare Ads</a>
+        <a href="#how-it-works" class="block hover:opacity-70">How It Works</a>
+        <hr class="border-black/10 dark:border-white/10">
+        <a href="login.html" class="block text-center py-3 btn-primary font-bold" data-i18n="nav_login">Login</a>
+      </div>
+    </header>
+
+    <!-- ── Hero Section ─────────────────────────────────────────────────────── -->
+    <section class="relative pt-20 pb-20 px-4 sm:px-8 max-w-7xl mx-auto w-full text-center">
+
+      <!-- Main Headline -->
+      <h1 class="text-4xl sm:text-6xl md:text-7xl font-extrabold font-heading tracking-tight max-w-5xl mx-auto leading-[1.12] mb-6 text-black dark:text-white">
+        Swasthya Sathi — <br class="hidden sm:inline">
+        Connected Health, Every Step Of The Way.
+      </h1>
+
+      <!-- Subheadline -->
+      <p class="text-lg sm:text-xl text-neutral-600 dark:text-neutral-400 max-w-3xl mx-auto font-medium leading-relaxed mb-10">
+        A transparent digital health companion bridging Patients, Doctors, Hospitals, and Laboratories into a secure, real-time medical grid.
+      </p>
+
+      <!-- CTA Buttons -->
+      <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-6 mb-16">
+        <a href="#portals" class="btn-primary rounded-full px-8 py-4 text-base flex items-center gap-3">
+          <span>Explore Portals</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </a>
+        <a href="#ads" class="btn-translucent rounded-full px-8 py-4 text-base flex items-center gap-3">
+          <i class="fa-solid fa-rectangle-ad text-sm"></i>
+          <span>Partner & Advertise</span>
+        </a>
+      </div>
+
+      <!-- Quick Metrics Flat Panel -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
+        <div class="flat-panel rounded-2xl p-5 text-center">
+          <div class="font-heading font-extrabold text-3xl text-black dark:text-white">100%</div>
+          <div class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mt-1">Paperless Grid</div>
+        </div>
+        <div class="flat-panel rounded-2xl p-5 text-center">
+          <div class="font-heading font-extrabold text-3xl text-black dark:text-white">Instant</div>
+          <div class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mt-1">Emergency QR Profile</div>
+        </div>
+        <div class="flat-panel rounded-2xl p-5 text-center">
+          <div class="font-heading font-extrabold text-3xl text-black dark:text-white">Real-Time</div>
+          <div class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mt-1">Lab Direct Uploads</div>
+        </div>
+        <div class="flat-panel rounded-2xl p-5 text-center">
+          <div class="font-heading font-extrabold text-3xl text-black dark:text-white">HIPAA</div>
+          <div class="text-xs font-semibold text-neutral-500 dark:text-neutral-400 mt-1">Consent Managed</div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ── Interactive Ecosystem Portals (Floating Translucent Cards) ────────── -->
+    <section id="portals" class="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+      
+      <!-- Section Header -->
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="badge-minimal mb-3">Ecosystem Gateway</span>
+        <h2 data-i18n="portals_title" class="text-3xl sm:text-5xl font-bold font-heading text-black dark:text-white">Ecosystem Role Gateways</h2>
+        <p data-i18n="portals_desc" class="text-neutral-600 dark:text-neutral-400 mt-4 text-base font-medium">Tailored portals for every stakeholder in the healthcare ecosystem</p>
+      </div>
+
+      <!-- 5 Floating Cards Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+        
+        <!-- Patient Card -->
+        <div class="flat-panel flat-panel-hover animate-card-float-1 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group">
+          <div>
+            <div class="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center text-xl mb-5 group-hover:scale-105 transition-transform text-black dark:text-white shadow-sm">
+              <i class="fa-solid fa-user-injured"></i>
+            </div>
+            <h3 class="font-heading font-bold text-xl mb-2 text-black dark:text-white">Join As Patient</h3>
+            <p class="text-neutral-600 dark:text-neutral-400 text-xs font-medium leading-relaxed mb-6">
+              Manage health ID, medical history, access permissions, emergency pass, and shop deals.
+            </p>
+          </div>
+          <a href="register/patient.html" class="w-full py-3 px-3 btn-primary text-center text-xs flex items-center justify-center gap-2">
+            <span>Register As Patient</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </a>
+        </div>
+
+        <!-- Doctor Card -->
+        <div class="flat-panel flat-panel-hover animate-card-float-2 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group">
+          <div>
+            <div class="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center text-xl mb-5 group-hover:scale-105 transition-transform text-black dark:text-white shadow-sm">
+              <i class="fa-solid fa-user-doctor"></i>
+            </div>
+            <h3 class="font-heading font-bold text-xl mb-2 text-black dark:text-white">Join As Doctor</h3>
+            <p class="text-neutral-600 dark:text-neutral-400 text-xs font-medium leading-relaxed mb-6">
+              Access assigned patient history, upload clinical notes, prescriptions, and feature OPD profile.
+            </p>
+          </div>
+          <a href="register/doctor.html" class="w-full py-3 px-3 btn-translucent text-center text-xs flex items-center justify-center gap-2">
+            <span>Register As Doctor</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </a>
+        </div>
+
+        <!-- Hospital Card -->
+        <div class="flat-panel flat-panel-hover animate-card-float-3 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group">
+          <div>
+            <div class="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center text-xl mb-5 group-hover:scale-105 transition-transform text-black dark:text-white shadow-sm">
+              <i class="fa-solid fa-hospital"></i>
+            </div>
+            <h3 class="font-heading font-bold text-xl mb-2 text-black dark:text-white">Register Hospital</h3>
+            <p class="text-neutral-600 dark:text-neutral-400 text-xs font-medium leading-relaxed mb-6">
+              Initiate patient visits, assign doctors, upload bills, and manage doctor affiliations.
+            </p>
+          </div>
+          <a href="register/hospital.html" class="w-full py-3 px-3 btn-translucent text-center text-xs flex items-center justify-center gap-2">
+            <span>Join Hospital Network</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </a>
+        </div>
+
+        <!-- Laboratory Card -->
+        <div class="flat-panel flat-panel-hover animate-card-float-4 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group">
+          <div>
+            <div class="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center text-xl mb-5 group-hover:scale-105 transition-transform text-black dark:text-white shadow-sm">
+              <i class="fa-solid fa-vial-virus"></i>
+            </div>
+            <h3 class="font-heading font-bold text-xl mb-2 text-black dark:text-white">Register Lab</h3>
+            <p class="text-neutral-600 dark:text-neutral-400 text-xs font-medium leading-relaxed mb-6">
+              Direct diagnostic upload for blood tests, pathology reports, MRI & X-Ray scans.
+            </p>
+          </div>
+          <a href="register/lab.html" class="w-full py-3 px-3 btn-translucent text-center text-xs flex items-center justify-center gap-2">
+            <span>Join Diagnostic Network</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </a>
+        </div>
+
+        <!-- Advertiser / Partner Card -->
+        <div class="flat-panel flat-panel-hover animate-card-float-5 rounded-3xl p-6 flex flex-col justify-between relative overflow-hidden group">
+          <div>
+            <div class="w-12 h-12 rounded-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 flex items-center justify-center text-xl mb-5 group-hover:scale-105 transition-transform text-black dark:text-white shadow-sm">
+              <i class="fa-solid fa-rectangle-ad"></i>
+            </div>
+            <h3 class="font-heading font-bold text-xl mb-2 text-black dark:text-white">Partner & Advertise</h3>
+            <p class="text-neutral-600 dark:text-neutral-400 text-xs font-medium leading-relaxed mb-6">
+              Promote pharma innovations, diagnostic equipment, health tech, and clinical services to a unified medical network.
+            </p>
+          </div>
+          <a href="register/advertiser.html" class="w-full py-3 px-3 btn-translucent text-center text-xs flex items-center justify-center gap-2">
+            <span>Join Partner Network</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </a>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ── Healthcare Ad Marketplace & Sponsored Partners ────────────────────── -->
+    <section id="ads" class="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+      
+      <div class="flat-panel rounded-[2.5rem] p-8 sm:p-14 relative overflow-hidden">
+        
+        <div class="flex flex-col lg:flex-row lg:items-end justify-between mb-12 gap-6">
+          <div>
+            <span class="badge-minimal mb-3">Healthcare Ads & Sponsorships</span>
+            <h2 class="text-3xl sm:text-4xl font-bold font-heading text-black dark:text-white">Partner Network & Industry Showcase</h2>
+            <p class="text-neutral-600 dark:text-neutral-400 text-sm sm:text-base font-medium mt-2">Promote medical innovations, pharma products, and healthcare services directly across our ecosystem.</p>
+          </div>
+
+          <!-- Advertise Button Trigger -->
+          <button id="open-ad-modal-btn" type="button" class="btn-primary px-6 py-3.5 text-sm flex items-center gap-2 shrink-0">
+            <i class="fa-solid fa-bullhorn text-xs"></i>
+            <span>Advertise With Us</span>
+          </button>
+        </div>
+
+        <!-- Ad Category Filter Tabs -->
+        <div class="flex flex-wrap gap-3 mb-10">
+          <button class="ad-tab-btn px-5 py-2.5 rounded-full text-xs font-bold transition-all btn-primary" data-category="all">All Partners</button>
+          <button class="ad-tab-btn px-5 py-2.5 rounded-full text-xs font-bold transition-all btn-translucent" data-category="pharma">Pharma & Biotech</button>
+          <button class="ad-tab-btn px-5 py-2.5 rounded-full text-xs font-bold transition-all btn-translucent" data-category="diagnostics">Diagnostics & Imaging</button>
+          <button class="ad-tab-btn px-5 py-2.5 rounded-full text-xs font-bold transition-all btn-translucent" data-category="devices">Medical Devices</button>
+        </div>
+
+          <!-- Ad Cards Grid -->
+        <div id="dynamic-ads-container" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="col-span-full text-center py-10 opacity-50 text-sm font-medium">
+            <i class="fa-solid fa-circle-notch fa-spin text-2xl mb-3 block"></i>
+            Loading featured partners...
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ── How It Works / Ecosystem Flow ───────────────────────────────────── -->
+    <section id="how-it-works" class="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+      
+      <div class="text-center max-w-3xl mx-auto mb-16">
+        <span class="badge-minimal mb-3">Seamless Workflow</span>
+        <h2 class="text-3xl sm:text-5xl font-bold font-heading text-black dark:text-white">How Swasthya Sathi Connects Healthcare</h2>
+        <p class="text-neutral-600 dark:text-neutral-400 mt-4 text-base font-medium">Four simple steps to transform physical medical clutter into a lifetime digital health grid.</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-8 relative">
+        
+        <!-- Step 1 -->
+        <div class="flat-panel flat-panel-hover rounded-3xl p-8 relative">
+          <div class="w-10 h-10 rounded-full border border-black/20 dark:border-white/20 text-black dark:text-white font-bold flex items-center justify-center font-heading text-lg mb-6">1</div>
+          <h3 class="font-heading font-bold text-xl mb-3 text-black dark:text-white">Digital Health ID</h3>
+          <p class="text-neutral-600 dark:text-neutral-400 text-sm font-medium leading-relaxed">Patient registers and receives a unique Digital Health ID (DHI) with an encrypted Emergency QR Profile.</p>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="flat-panel flat-panel-hover rounded-3xl p-8 relative">
+          <div class="w-10 h-10 rounded-full border border-black/20 dark:border-white/20 text-black dark:text-white font-bold flex items-center justify-center font-heading text-lg mb-6">2</div>
+          <h3 class="font-heading font-bold text-xl mb-3 text-black dark:text-white">Consent-Based Link</h3>
+          <p class="text-neutral-600 dark:text-neutral-400 text-sm font-medium leading-relaxed">Hospitals and doctors initiate visits. Patients retain full access control to approve or revoke global history.</p>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="flat-panel flat-panel-hover rounded-3xl p-8 relative">
+          <div class="w-10 h-10 rounded-full border border-black/20 dark:border-white/20 text-black dark:text-white font-bold flex items-center justify-center font-heading text-lg mb-6">3</div>
+          <h3 class="font-heading font-bold text-xl mb-3 text-black dark:text-white">Direct Lab Transmission</h3>
+          <p class="text-neutral-600 dark:text-neutral-400 text-sm font-medium leading-relaxed">Diagnostic laboratories upload reports directly to the patient's grid without carrying physical files.</p>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="flat-panel flat-panel-hover rounded-3xl p-8 relative">
+          <div class="w-10 h-10 rounded-full border border-black/20 dark:border-white/20 text-black dark:text-white font-bold flex items-center justify-center font-heading text-lg mb-6">4</div>
+          <h3 class="font-heading font-bold text-xl mb-3 text-black dark:text-white">Emergency Readiness</h3>
+          <p class="text-neutral-600 dark:text-neutral-400 text-sm font-medium leading-relaxed">In critical situations, ER doctors scan the emergency QR to instantly view blood group, allergies, and contacts.</p>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ── About Us & Mission Section ───────────────────────────────────────── -->
+    <section id="about" class="py-20 px-4 sm:px-8 max-w-7xl mx-auto w-full">
+      <div class="flat-panel rounded-[2.5rem] p-8 sm:p-16 flex flex-col lg:flex-row items-center justify-between gap-12">
+        <div class="lg:w-1/2">
+          <span class="badge-minimal mb-4">About Swasthya Sathi</span>
+          <h2 class="text-3xl sm:text-5xl font-bold font-heading leading-tight mb-6 text-black dark:text-white">Empowering Every Citizen With Accessible Health Records.</h2>
+          <p class="text-neutral-600 dark:text-neutral-400 text-base font-medium leading-relaxed mb-6">
+            Swasthya Sathi was created to eliminate fragmented medical records, lost diagnostic reports, and delayed emergency responses. By uniting healthcare providers under one transparent, consent-driven network, we ensure your health companion is always with you.
+          </p>
+          <div class="flex flex-wrap gap-4">
+            <a href="register/patient.html" class="btn-primary px-6 py-3 text-sm">Get Your Health ID</a>
+            <a href="login.html" class="btn-translucent px-6 py-3 text-sm">Provider Portal</a>
+          </div>
+        </div>
+        <div class="lg:w-5/12 grid grid-cols-2 gap-4 w-full">
+          <div class="flat-panel flat-panel-hover rounded-2xl p-6 text-center">
+            <i class="fa-solid fa-shield-halved text-2xl text-black dark:text-white mb-3"></i>
+            <h4 class="font-heading font-bold text-lg text-black dark:text-white">256-bit Security</h4>
+            <p class="text-xs text-neutral-500 mt-1">Encrypted patient data</p>
+          </div>
+          <div class="flat-panel flat-panel-hover rounded-2xl p-6 text-center">
+            <i class="fa-solid fa-bolt text-2xl text-black dark:text-white mb-3"></i>
+            <h4 class="font-heading font-bold text-lg text-black dark:text-white">Real-Time Sync</h4>
+            <p class="text-xs text-neutral-500 mt-1">Instant updates</p>
+          </div>
+          <div class="flat-panel flat-panel-hover rounded-2xl p-6 text-center">
+            <i class="fa-solid fa-qrcode text-2xl text-black dark:text-white mb-3"></i>
+            <h4 class="font-heading font-bold text-lg text-black dark:text-white">QR Emergency</h4>
+            <p class="text-xs text-neutral-500 mt-1">Scan for instant info</p>
+          </div>
+          <div class="flat-panel flat-panel-hover rounded-2xl p-6 text-center">
+            <i class="fa-solid fa-handshake-simple text-2xl text-black dark:text-white mb-3"></i>
+            <h4 class="font-heading font-bold text-lg text-black dark:text-white">Multi-Provider</h4>
+            <p class="text-xs text-neutral-500 mt-1">Hospitals & Labs</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Partner Ad Modal ────────────────────────────────────────────────── -->
+    <div id="ad-modal" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/50 dark:bg-black/80 backdrop-blur-md">
+      <div class="flat-panel rounded-3xl max-w-lg w-full p-8 relative animate-fade-in shadow-2xl">
+        <button id="close-ad-modal-btn" class="absolute top-6 right-6 text-neutral-400 hover:text-black dark:hover:text-white text-lg">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <h3 class="font-heading font-bold text-2xl mb-2 text-black dark:text-white">Partner With Swasthya Sathi</h3>
+        <p class="text-xs font-medium text-neutral-500 dark:text-neutral-400 mb-6">Promote your healthcare products, clinical trials, or hospital services to millions across our medical ecosystem.</p>
+
+        <form id="ad-partner-form" class="space-y-4">
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">Company / Institution Name</label>
+            <input type="text" id="ad-partner-company" required placeholder="e.g. Apollo Diagnostics" class="w-full px-4 py-3 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">Business Email</label>
+            <input type="email" id="ad-partner-email" required placeholder="contact@company.com" class="w-full px-4 py-3 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">Partnership Category</label>
+            <select id="ad-partner-category" class="w-full px-4 py-3 rounded-xl bg-white dark:bg-black border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white">
+              <option value="pharma">Pharma & Biotech Sponsorship</option>
+              <option value="diagnostics">Diagnostic Labs Advertising</option>
+              <option value="hospitals">Hospital Network Integration</option>
+              <option value="devices">Medical Devices Showcase</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-neutral-600 dark:text-neutral-400 mb-1">Inquiry / Proposal Details</label>
+            <textarea id="ad-partner-details" rows="3" placeholder="Briefly describe your partnership goals..." class="w-full px-4 py-3 rounded-xl bg-transparent border border-black/15 dark:border-white/15 text-sm text-black dark:text-white focus:outline-none focus:border-black dark:focus:border-white"></textarea>
+          </div>
+
+          <div id="ad-form-status"></div>
+
+          <button type="submit" id="ad-partner-submit-btn" class="w-full py-3.5 btn-primary text-sm font-bold mt-2">Submit Partnership Proposal</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── Footer ──────────────────────────────────────────────────────────── -->
+    <footer class="mt-auto border-t border-black/10 dark:border-white/10 py-12 px-4 sm:px-8 max-w-7xl mx-auto w-full text-sm text-neutral-500 dark:text-neutral-400">
+      <div class="flex flex-col md:flex-row justify-between items-center gap-6">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center font-bold text-sm text-black dark:text-white">
+            <i class="fa-solid fa-heart-pulse"></i>
+          </div>
+          <span class="font-heading font-extrabold text-lg text-black dark:text-white">Swasthya Sathi</span>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-6 font-semibold">
+          <a href="#about" class="hover:text-black dark:hover:text-white">About</a>
+          <a href="#portals" class="hover:text-black dark:hover:text-white">Portals</a>
+          <a href="#ads" class="hover:text-black dark:hover:text-white">Healthcare Ads</a>
+          <a href="login.html" class="hover:text-black dark:hover:text-white">Login</a>
+          <a href="emergency/profile.html" class="text-neutral-900 dark:text-neutral-100 font-bold hover:underline">Emergency QR Lookup</a>
+        </div>
+
+        <div>
+          &copy; 2026 Swasthya Sathi Ecosystem. All rights reserved.
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- JavaScript Module Script -->
+  <script type="module" src="js/index.js"></script>
+</body>
+</html>
