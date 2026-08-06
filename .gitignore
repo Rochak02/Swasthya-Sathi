@@ -1,0 +1,28 @@
+# ── Sensitive / Secrets ────────────────────────────────────────────────────────
+backend/service-account-key.json
+backend/*.json
+**/serviceAccountKey.json
+**/.env
+**/.env.*
+!**/.env.example
+
+# ── Backend (pushed separately) ────────────────────────────────────────────────
+backend/
+
+# ── OS / Editor ────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+*.log
+
+# ── Node / npm ─────────────────────────────────────────────────────────────────
+node_modules/
+npm-debug.log*
+package-lock.json
+
+# ── Agents / IDE meta ──────────────────────────────────────────────────────────
+.agents/
+.gemini/
