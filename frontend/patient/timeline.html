@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Medical Timeline — Swasthya Sathi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/custom.css">
+</head>
+<body class="bg-white dark:bg-black text-black dark:text-white p-6 min-h-screen">
+  <div class="max-w-4xl mx-auto space-y-6">
+    <div class="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-4">
+      <h2 class="font-heading font-extrabold text-2xl">Medical Timeline History</h2>
+      <a href="dashboard.html" class="btn-translucent px-4 py-2 text-xs rounded-full">Open Full Dashboard</a>
+    </div>
+
+    <div id="records-list" class="space-y-4">
+      <p class="text-xs opacity-60 text-center py-8">Loading timeline...</p>
+    </div>
+  </div>
+
+  <script type="module">
+    import { auth, db } from '../js/firebase-config.js';
+    import { requireAuth } from '../js/auth-guard.js';
+    import { initDarkMode, formatDate, recordTypeIcon, recordTypeLabel, resolveFileUrl } from '../js/utils.js';
+    import { collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initDarkMode();
+      requireAuth(async (user) => {
+        const q = query(collection(db, 'patients'), where('personalInfo.uid', '==', user.uid));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          const healthId = snap.docs[0].id;
+          const recSnap = await getDocs(collection(db, `patients/${healthId}/records`));
+          const records = recSnap.docs.map(d => d.data());
+          records.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+
+          const list = document.getElementById('records-list');
+          if (!records.length) {
+            list.innerHTML = `<p class="text-xs text-center py-8 opacity-60">No records found.</p>`;
+            return;
+          }
+
+          list.innerHTML = records.map(r => `
+            <div class="flat-panel p-5 rounded-2xl flex items-center justify-between gap-4">
+              <div class="flex items-center gap-3">
+                <span class="text-2xl">${recordTypeIcon(r.type)}</span>
+                <div>
+                  <h4 class="font-heading font-bold text-sm">${recordTypeLabel(r.type)}</h4>
+                  <p class="text-xs opacity-60">${r.hospitalName || 'Self Uploaded'} • ${formatDate(r.date)}</p>
+                </div>
+              </div>
+              ${r.fileURL ? `<a href="${resolveFileUrl(r.fileURL)}" target="_blank" class="btn-primary px-4 py-2 text-xs rounded-full">View PDF</a>` : ''}
+            </div>
+          `).join('');
+        }
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Patient Profile — Swasthya Sathi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/custom.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="bg-white dark:bg-black text-black dark:text-white p-6 min-h-screen">
+  <div class="max-w-4xl mx-auto space-y-6">
+    
+    <!-- Profile Hero Glass Card -->
+    <div class="flat-panel p-8 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-6">
+      <div class="flex items-center gap-4">
+        <div id="avatar" class="w-16 h-16 rounded-full bg-black/10 dark:bg-white/10 border border-black/20 dark:border-white/20 flex items-center justify-center font-heading font-extrabold text-2xl">--</div>
+        <div>
+          <h1 id="name" class="font-heading font-extrabold text-2xl">Loading Patient...</h1>
+          <p id="health-id" class="text-xs font-mono opacity-60">DHI-2026-XXXX</p>
+        </div>
+      </div>
+      <div class="badge-minimal">
+        <i class="fa-solid fa-droplet text-red-500"></i>
+        <span id="blood-badge">Blood: --</span>
+      </div>
+    </div>
+
+    <!-- Personal Profile Details -->
+    <div class="flat-panel p-8 rounded-3xl space-y-4">
+      <h3 class="font-heading font-bold text-xl border-b border-black/10 dark:border-white/10 pb-3">Personal Profile</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <div><span class="opacity-60 block text-xs uppercase font-bold">DOB</span> <p id="dob">--</p></div>
+        <div><span class="opacity-60 block text-xs uppercase font-bold">Gender</span> <p id="gender">--</p></div>
+        <div><span class="opacity-60 block text-xs uppercase font-bold">Phone</span> <p id="phone">--</p></div>
+        <div><span class="opacity-60 block text-xs uppercase font-bold">Address</span> <p id="address">--</p></div>
+      </div>
+    </div>
+
+    <!-- Medical Details -->
+    <div class="flat-panel p-8 rounded-3xl space-y-4">
+      <h3 class="font-heading font-bold text-xl border-b border-black/10 dark:border-white/10 pb-3">Medical Summary</h3>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+        <div><span class="opacity-60 block text-xs uppercase font-bold">Known Allergies</span> <p id="allergies">--</p></div>
+        <div><span class="opacity-60 block text-xs uppercase font-bold">Chronic Conditions</span> <p id="chronic">--</p></div>
+      </div>
+    </div>
+
+  </div>
+
+  <script type="module">
+    import { auth, db } from '../js/firebase-config.js';
+    import { requireAuth } from '../js/auth-guard.js';
+    import { initDarkMode, initials } from '../js/utils.js';
+    import { collection, query, where, getDocs } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initDarkMode();
+      requireAuth(async (user) => {
+        const q = query(collection(db, 'patients'), where('personalInfo.uid', '==', user.uid));
+        const snap = await getDocs(q);
+        if (!snap.empty) {
+          const data = snap.docs[0].data();
+          const p = data.personalInfo || {};
+          const m = data.medicalInfo || {};
+
+          document.getElementById('name').textContent = p.name || 'Patient';
+          document.getElementById('health-id').textContent = snap.docs[0].id;
+          document.getElementById('avatar').textContent = initials(p.name || 'P');
+          document.getElementById('blood-badge').textContent = `Blood: ${m.bloodGroup || 'Unknown'}`;
+
+          document.getElementById('dob').textContent = p.dob || 'Not specified';
+          document.getElementById('gender').textContent = p.gender || 'Not specified';
+          document.getElementById('phone').textContent = p.phone || 'Not specified';
+          document.getElementById('address').textContent = p.address || 'Not specified';
+
+          document.getElementById('allergies').textContent = m.allergies || 'None reported';
+          document.getElementById('chronic').textContent = m.chronicConditions || 'None reported';
+        }
+      });
+    });
+  </script>
+</body>
+</html>

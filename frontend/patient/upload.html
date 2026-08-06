@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload Record — Swasthya Sathi</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../css/custom.css">
+</head>
+<body class="bg-white dark:bg-black text-black dark:text-white p-6 min-h-screen">
+  <div class="max-w-2xl mx-auto space-y-6">
+    <div class="flex items-center justify-between border-b border-black/10 dark:border-white/10 pb-4">
+      <h2 class="font-heading font-extrabold text-2xl">Upload Medical Document</h2>
+      <a href="dashboard.html" class="btn-translucent px-4 py-2 text-xs rounded-full">Return to Dashboard</a>
+    </div>
+
+    <div class="flat-panel p-8 rounded-3xl space-y-4">
+      <p class="text-sm opacity-80">Upload files directly from your patient dashboard workspace.</p>
+      <a href="dashboard.html" class="btn-primary py-3 px-6 rounded-full inline-block text-xs font-bold">Open Dashboard Uploader</a>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initDarkMode } from '../js/utils.js';
+    document.addEventListener('DOMContentLoaded', () => initDarkMode());
+  </script>
+</body>
+</html>
