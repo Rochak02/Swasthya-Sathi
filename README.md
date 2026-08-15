@@ -196,6 +196,40 @@ The heart of the platform. Each patient gets a **personal health record (PHR/EHR
 
 ---
 
+## 🔌 Hardware Architecture & Pinouts
+
+Swasthya Sathi integrates cutting-edge IoT and robotics hardware to bridge the gap between digital management and physical healthcare logistics.
+
+### 1. Smart Queue Management (RFID System)
+We use the **Seeed Studio XIAO ESP32C6** paired with an **RC522 RFID Module** to create a seamless, touchless token scanning system for the OPD.
+
+<div align="center">
+  <img src="hardware/images/xiao_front.png" width="400" alt="XIAO ESP32C6 Front Pinout" />
+  <img src="hardware/images/xiao_back.png" width="400" alt="XIAO ESP32C6 Back Pinout" />
+</div>
+
+* **XIAO ESP32C6**: Chosen for its ultra-compact size, Wi-Fi 6, and Bluetooth 5 (LE) capabilities. The front pinout maps our I2C and SPI peripherals, while the back pinout provides direct access to battery management (BAT+/BAT-) for portable queue kiosks.
+
+<div align="center">
+  <img src="hardware/images/rc522.png" width="300" alt="RC522 RFID Module" />
+</div>
+
+* **RC522 RFID Module**: Interfaced via SPI (MOSI, MISO, SCK, SDA/SS). When a patient scans their physical token, the ESP32C6 instantly queries the Firebase backend to update their queue status on the Doctor's Dashboard.
+
+### 2. Medical Supply Drone Delivery
+For rapid, autonomous delivery of critical supplies (blood, emergency meds), we utilize a custom drone flight controller based on the **ESP32-S3-WROOM-1**.
+
+<div align="center">
+  <img src="hardware/images/drone_pinout.png" width="600" alt="ESP32-S3 Drone Pinout" />
+</div>
+
+* **Lite Wing V1.2 Flight Controller**: 
+  * **GPIO & PWM**: Mapped to the four ESCs for quadcopter motor control.
+  * **Sensors (I2C)**: Dedicated SDA/SCL lines for the IMU (Gyro/Accelerometer) and Barometer for stable flight.
+  * **UART 2 & SPI**: Used for GPS telemetry and long-range radio communication to track the drone directly from the Swasthya Sathi Hospital Dashboard.
+
+---
+
 ## 🚀 Frontend Setup
 
 The frontend is **zero-dependency** — no build tools, no npm install required.
