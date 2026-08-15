@@ -12,7 +12,6 @@ frontend/js/supabase-config.js
 
 
 # ── Backend (pushed separately) ────────────────────────────────────────────────
-backend/
 
 # ── OS / Editor ────────────────────────────────────────────────────────────────
 .DS_Store
