@@ -1,42 +1,47 @@
 // ============================================================
-//  ads-config.js  —  Firestore-backed Advertisement Manager
-//  Replaces supabase-config.js (localStorage was never real)
-//  All ad data is now persisted in Firestore "advertisements" collection
+//  ads-config.js  —  Backend API-Powered Advertisement Manager
+//
+//  ✅ All reads & writes go through FastAPI backend (Admin SDK)
+//  ✅ Bypasses Firestore client security rules entirely
+//  ✅ Uses 5-second polling for "near real-time" updates
+//  ✅ Zero direct Firestore client SDK dependency for ads
 // ============================================================
 
-import { db } from './firebase-config.js';
-import {
-  collection, doc, addDoc, updateDoc, getDocs, query,
-  where, orderBy, serverTimestamp, increment, onSnapshot
-} from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+import { API_BASE } from './firebase-config.js';
 
-const ADS_COLLECTION = 'advertisements';
+const POLL_INTERVAL_MS = 5000; // 5-second poll interval
+
+// ── Internal helper: fetch campaigns from backend ─────────────
+async function fetchCampaigns(params = {}) {
+  try {
+    const url = new URL(`${API_BASE}/api/campaigns`);
+    Object.entries(params).forEach(([k, v]) => {
+      if (v !== undefined && v !== null && v !== '') {
+        url.searchParams.set(k, v);
+      }
+    });
+
+    const res = await fetch(url.toString());
+    if (!res.ok) {
+      console.error('[AdsConfig] Backend returned', res.status, await res.text());
+      return [];
+    }
+    const data = await res.json();
+    return data.campaigns || [];
+  } catch (err) {
+    console.error('[AdsConfig] fetchCampaigns error:', err);
+    return [];
+  }
+}
 
 // ── Get All Ads (with optional status filter) ─────────────────
 /**
- * Fetch advertisements from Firestore.
+ * Fetch advertisements from the backend.
  * @param {string} [status] - 'approved', 'pending', 'rejected', or undefined for all
  * @returns {Promise<Array>}
  */
 export async function getAdvertisements(status) {
-  try {
-    const adsRef = collection(db, ADS_COLLECTION);
-    let q;
-
-    if (status) {
-      q = query(adsRef, where('status', '==', status));
-    } else {
-      q = query(adsRef, orderBy('createdAt', 'desc'));
-    }
-
-    const snapshot = await getDocs(q);
-    const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    if (status) docs.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-    return docs;
-  } catch (err) {
-    console.error('[AdsConfig] getAdvertisements error:', err);
-    return [];
-  }
+  return fetchCampaigns(status ? { status } : {});
 }
 
 // ── Get Campaigns for a Specific Advertiser ───────────────────
@@ -45,117 +50,105 @@ export async function getAdvertisements(status) {
  * @returns {Promise<Array>}
  */
 export async function getAdvertiserCampaigns(advertiserUid) {
-  try {
-    const adsRef = collection(db, ADS_COLLECTION);
-    const q = query(
-      adsRef,
-      where('advertiserUid', '==', advertiserUid)
-    );
-    const snapshot = await getDocs(q);
-    const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    docs.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-    return docs;
-  } catch (err) {
-    console.error('[AdsConfig] getAdvertiserCampaigns error:', err);
-    return [];
-  }
+  return fetchCampaigns({ advertiserUid });
 }
 
-// ── Real-time Listener for Approved Ads (Patient Shop) ────────
+// ── Real-time Polling: Approved Ads (Patient Shop) ────────────
 /**
- * Subscribe to live changes in approved advertisements.
- * @param {function} callback - Called with array of approved ads on every change
- * @returns {function} unsubscribe function
+ * Subscribe to approved ads via polling (replaces Firestore onSnapshot).
+ * @param {function} callback - Called with array of approved ads every poll cycle
+ * @returns {function} unsubscribe — call to stop polling
  */
 export function subscribeToApprovedAds(callback) {
-  const adsRef = collection(db, ADS_COLLECTION);
-  const q = query(adsRef, where('status', '==', 'approved'));
+  let cancelled = false;
 
-  return onSnapshot(q, (snapshot) => {
-    const ads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    ads.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
-    callback(ads);
-  }, (err) => {
-    console.error('[AdsConfig] subscribeToApprovedAds error:', err);
-    callback([]);
-  });
+  async function poll() {
+    if (cancelled) return;
+    const ads = await fetchCampaigns({ status: 'approved' });
+    if (!cancelled) callback(ads);
+  }
+
+  poll(); // Immediate first load
+  const timer = setInterval(poll, POLL_INTERVAL_MS);
+
+  return () => {
+    cancelled = true;
+    clearInterval(timer);
+  };
 }
 
-// ── Real-time Listener for All Ads (Admin Queue) ──────────────
+// ── Real-time Polling: All Ads (Admin Queue) ──────────────────
 /**
- * Subscribe to live changes in ALL advertisements (for admin moderation).
+ * Subscribe to all ads via polling.
  * @param {function} callback
- * @returns {function} unsubscribe function
+ * @returns {function} unsubscribe
  */
 export function subscribeToAllAds(callback) {
-  const adsRef = collection(db, ADS_COLLECTION);
-  const q = query(adsRef, orderBy('createdAt', 'desc'));
+  let cancelled = false;
 
-  return onSnapshot(q, (snapshot) => {
-    const ads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    callback(ads);
-  }, (err) => {
-    console.error('[AdsConfig] subscribeToAllAds error:', err);
-    callback([]);
-  });
+  async function poll() {
+    if (cancelled) return;
+    const ads = await fetchCampaigns();
+    if (!cancelled) callback(ads);
+  }
+
+  poll();
+  const timer = setInterval(poll, POLL_INTERVAL_MS);
+
+  return () => {
+    cancelled = true;
+    clearInterval(timer);
+  };
 }
 
-// ── Real-time Listener for Advertiser's Own Campaigns ─────────
+// ── Real-time Polling: Advertiser's Own Campaigns ─────────────
 /**
- * Subscribe to live changes in an advertiser's own campaigns.
+ * Subscribe to an advertiser's own campaigns via polling.
  * @param {string} advertiserUid
  * @param {function} callback
  * @returns {function} unsubscribe
  */
 export function subscribeToAdvertiserCampaigns(advertiserUid, callback) {
-  const adsRef = collection(db, ADS_COLLECTION);
-  const q = query(
-    adsRef,
-    where('advertiserUid', '==', advertiserUid),
-    orderBy('createdAt', 'desc')
-  );
+  let cancelled = false;
 
-  return onSnapshot(q, (snapshot) => {
-    const ads = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    callback(ads);
-  }, (err) => {
-    console.error('[AdsConfig] subscribeToAdvertiserCampaigns error:', err);
-    callback([]);
-  });
+  async function poll() {
+    if (cancelled) return;
+    const ads = await fetchCampaigns({ advertiserUid });
+    if (!cancelled) callback(ads);
+  }
+
+  poll();
+  const timer = setInterval(poll, POLL_INTERVAL_MS);
+
+  return () => {
+    cancelled = true;
+    clearInterval(timer);
+  };
 }
 
 // ── Create a New Ad Campaign ──────────────────────────────────
 /**
- * Advertiser submits a new campaign. Status defaults to 'pending'.
+ * Submit a new campaign via the backend API.
  * @param {Object} adData
  * @returns {Promise<{id: string, ...adData}>}
  */
 export async function createAdvertisement(adData) {
-  try {
-    const newAd = {
-      advertiserUid:   adData.advertiserUid || 'unknown',
-      companyName:     adData.companyName   || 'Partner Brand',
-      title:           adData.title,
-      description:     adData.description   || '',
-      category:        adData.category      || 'wellness',
-      placement:       adData.placement     || 'partner_card',
-      targetUrl:       adData.targetUrl     || '#',
-      imageUrl:        adData.imageUrl      || '',
-      status:          adData.status        || 'pending',
-      rejectionReason: null,
-      impressions:     0,
-      clicks:          0,
-      budget:          adData.budget        || '₹0',
-      createdAt:       serverTimestamp(),
-    };
+  const res = await fetch(`${API_BASE}/api/campaigns`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(adData),
+  });
 
-    const docRef = await addDoc(collection(db, ADS_COLLECTION), newAd);
-    console.log('[AdsConfig] New ad created:', docRef.id);
-    return { id: docRef.id, ...newAd };
-  } catch (err) {
-    console.error('[AdsConfig] createAdvertisement error:', err);
-    throw err;
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    const detail = errBody.detail || `HTTP ${res.status}`;
+    console.error('[AdsConfig] createAdvertisement failed:', detail);
+    throw new Error(detail);
   }
+
+  const data = await res.json();
+  console.log('[AdsConfig] New campaign created:', data.id);
+  return { id: data.id, ...adData };
 }
 
 // ── Admin: Approve an Ad ──────────────────────────────────────
@@ -163,18 +156,14 @@ export async function createAdvertisement(adData) {
  * @param {string} adId
  */
 export async function approveAdvertisement(adId) {
-  try {
-    const adRef = doc(db, ADS_COLLECTION, adId);
-    await updateDoc(adRef, {
-      status:          'approved',
-      rejectionReason: null,
-      approvedAt:      serverTimestamp(),
-    });
-    console.log('[AdsConfig] Ad approved:', adId);
-  } catch (err) {
-    console.error('[AdsConfig] approveAdvertisement error:', err);
-    throw err;
+  const res = await fetch(`${API_BASE}/api/campaigns/${adId}/approve`, {
+    method: 'PUT',
+  });
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error(errBody.detail || 'Failed to approve campaign');
   }
+  console.log('[AdsConfig] Ad approved:', adId);
 }
 
 // ── Admin: Reject an Ad with Reason ──────────────────────────
@@ -183,43 +172,41 @@ export async function approveAdvertisement(adId) {
  * @param {string} reason
  */
 export async function rejectAdvertisement(adId, reason = 'Rejected by Admin') {
-  try {
-    const adRef = doc(db, ADS_COLLECTION, adId);
-    await updateDoc(adRef, {
-      status:          'rejected',
-      rejectionReason: reason,
-      rejectedAt:      serverTimestamp(),
-    });
-    console.log('[AdsConfig] Ad rejected:', adId, '| Reason:', reason);
-  } catch (err) {
-    console.error('[AdsConfig] rejectAdvertisement error:', err);
-    throw err;
+  const res = await fetch(`${API_BASE}/api/campaigns/${adId}/reject`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ reason }),
+  });
+  if (!res.ok) {
+    const errBody = await res.json().catch(() => ({}));
+    throw new Error(errBody.detail || 'Failed to reject campaign');
   }
+  console.log('[AdsConfig] Ad rejected:', adId, '| Reason:', reason);
 }
 
-// ── Track Impression (atomic increment) ──────────────────────
+// ── Track Impression (fire-and-forget) ───────────────────────
 /**
  * @param {string} adId
  */
 export async function incrementAdImpression(adId) {
   try {
-    const adRef = doc(db, ADS_COLLECTION, adId);
-    await updateDoc(adRef, { impressions: increment(1) });
+    await fetch(`${API_BASE}/api/campaigns/${adId}/impression`, { method: 'POST' });
   } catch (err) {
-    // Silently fail — don't break UI for analytics errors
-    console.warn('[AdsConfig] incrementAdImpression failed for', adId, err.message);
+    // Silently fail — analytics errors must never break the UI
+    console.warn('[AdsConfig] incrementAdImpression failed for', adId);
   }
 }
 
-// ── Track Click (atomic increment) ───────────────────────────
+// ── Track Click (fire-and-forget) ────────────────────────────
 /**
  * @param {string} adId
  */
 export async function incrementAdClick(adId) {
   try {
-    const adRef = doc(db, ADS_COLLECTION, adId);
-    await updateDoc(adRef, { clicks: increment(1) });
+    await fetch(`${API_BASE}/api/campaigns/${adId}/click`, { method: 'POST' });
   } catch (err) {
-    console.warn('[AdsConfig] incrementAdClick failed for', adId, err.message);
+    console.warn('[AdsConfig] incrementAdClick failed for', adId);
   }
 }
+
+

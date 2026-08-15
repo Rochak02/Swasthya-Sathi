@@ -83,6 +83,10 @@
             <i class="fa-solid fa-clock-rotate-left text-base w-5"></i>
             <span>Medical Timeline</span>
           </button>
+          <button data-target="ai-view" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left">
+            <i class="fa-solid fa-robot text-base w-5"></i>
+            <span>AI Assistant</span>
+          </button>
           <button data-target="shop-view" class="nav-btn w-full flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left">
             <div class="flex items-center gap-3">
               <i class="fa-solid fa-store text-base w-5"></i>
@@ -102,6 +106,14 @@
           <button data-target="qr-view" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left">
             <i class="fa-solid fa-qrcode text-base w-5"></i>
             <span>Emergency QR</span>
+          </button>
+          <button data-target="rfid-view" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left">
+            <i class="fa-solid fa-id-card text-base w-5"></i>
+            <span>My RFID Card</span>
+          </button>
+          <button id="drone-emergency-sidebar-btn" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left text-red-600 dark:text-red-400 bg-red-500/10 hover:bg-red-500/20">
+            <i class="fa-solid fa-truck-medical text-base w-5"></i>
+            <span>Drone Emergency</span>
           </button>
         </nav>
       </div>
@@ -157,6 +169,10 @@
               <button onclick="switchTab('qr-view')" class="btn-primary px-5 py-3 rounded-full text-xs font-bold flex items-center gap-2">
                 <i class="fa-solid fa-qrcode"></i>
                 <span>Show Emergency Pass</span>
+              </button>
+              <button id="test-drone-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-3 rounded-full text-xs font-bold flex items-center gap-2 transition-colors">
+                <i class="fa-solid fa-fan"></i>
+                <span>Test Drone Spin</span>
               </button>
             </div>
           </div>
@@ -220,6 +236,37 @@
           </div>
           <div id="overview-recent-list" class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <p class="text-xs opacity-50 text-center py-4 sm:col-span-3">Loading timeline records...</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- ── VIEW AI: AI ASSISTANT TAB ────────────────────────────────────── -->
+      <section id="ai-view" class="tab-content hidden space-y-6">
+        <div class="flat-panel p-6 sm:p-8 rounded-3xl space-y-6">
+          <div class="border-b border-black/10 dark:border-white/10 pb-4">
+            <h3 class="font-heading font-bold text-xl">AI Medical Assistant</h3>
+            <p class="text-xs opacity-60">Select a medical record to summarize, translate, or explain</p>
+          </div>
+          
+          <div class="space-y-4">
+            <label class="text-xs font-bold uppercase opacity-60">Select Medical Record</label>
+            <select id="ai-record-select" class="prof-input w-full p-3.5 rounded-2xl text-sm font-medium bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10">
+              <option value="">Loading records...</option>
+            </select>
+          </div>
+
+          <div class="space-y-4">
+            <label class="text-xs font-bold uppercase opacity-60">Your Question</label>
+            <textarea id="ai-query-input" rows="3" placeholder="e.g. Can you summarize this report in simple terms? What medicines are listed?" class="prof-input w-full p-3.5 rounded-2xl text-sm font-medium bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 resize-none"></textarea>
+          </div>
+
+          <button id="ai-ask-btn" class="btn-primary w-full py-4 rounded-2xl text-sm font-bold flex items-center justify-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Ask AI
+          </button>
+
+          <div id="ai-response-container" class="hidden space-y-2 mt-4">
+            <label class="text-xs font-bold uppercase opacity-60">AI Response</label>
+            <div id="ai-response-text" class="p-6 rounded-2xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm whitespace-pre-wrap leading-relaxed shadow-inner"></div>
           </div>
         </div>
       </section>
@@ -580,6 +627,153 @@
 
       </section>
 
+      <!-- ── VIEW: MY RFID CARD ───────────────────────────────────────────── -->
+      <section id="rfid-view" class="tab-content space-y-6 hidden">
+        
+        <!-- Card Status Widget -->
+        <div id="rfid-card-widget" class="flat-panel rounded-[2rem] p-6 sm:p-8 relative overflow-hidden">
+          <div class="badge-minimal mb-4 text-[10px]">Physical Access Card</div>
+          <div id="rfid-loading" class="text-center py-8 opacity-50 text-sm">Loading card status...</div>
+
+          <!-- No Card State -->
+          <div id="rfid-no-card" class="hidden text-center py-6">
+            <div class="w-16 h-16 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center mx-auto mb-4">
+              <i class="fa-solid fa-id-card-clip text-2xl opacity-40"></i>
+            </div>
+            <h3 class="font-heading font-bold text-lg mb-1">No RFID Card Issued</h3>
+            <p class="text-xs opacity-60 max-w-sm mx-auto">Your physical RFID card hasn't been issued yet. Contact your administrator or complete registration to request one.</p>
+          </div>
+
+          <!-- Pending State -->
+          <div id="rfid-pending" class="hidden">
+            <div class="flex items-center gap-4 p-4 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
+              <i class="fa-solid fa-clock text-amber-500 text-xl"></i>
+              <div>
+                <h4 class="font-bold text-sm">Card Being Prepared</h4>
+                <p class="text-xs opacity-70 mt-0.5">Your RFID card has been issued and is being prepared for mailing. You'll receive it shortly.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mailed State — show activation input -->
+          <div id="rfid-mailed" class="hidden space-y-6">
+            <div class="flex items-center gap-4 p-4 bg-blue-500/10 border border-blue-500/20 rounded-2xl">
+              <i class="fa-solid fa-envelope text-blue-500 text-xl"></i>
+              <div>
+                <h4 class="font-bold text-sm">Card Mailed to You!</h4>
+                <p class="text-xs opacity-70 mt-0.5">Your RFID card has been mailed. Check your registered address. Once received, activate it below using the code printed on the envelope.</p>
+              </div>
+            </div>
+            <form id="rfid-activate-form" class="flex flex-col sm:flex-row gap-4 items-end">
+              <div class="flex-1">
+                <label class="block text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1.5">Card Code (from envelope)</label>
+                <input type="text" id="rfid-code-input" placeholder="e.g. SS-A1B2-C3D4" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm font-mono focus:outline-none focus:border-blue-500/50 tracking-widest uppercase transition-colors" required>
+              </div>
+              <button type="submit" class="px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg shadow-blue-500/20 whitespace-nowrap">
+                <i class="fa-solid fa-check"></i> Activate Card
+              </button>
+            </form>
+          </div>
+
+          <!-- Active State -->
+          <div id="rfid-active" class="hidden">
+            <div class="flex flex-col sm:flex-row items-start sm:items-center gap-6">
+              <div class="w-20 h-20 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center flex-shrink-0">
+                <i class="fa-solid fa-id-card text-emerald-500 text-3xl"></i>
+              </div>
+              <div class="space-y-2 flex-1">
+                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  Card Active
+                </span>
+                <div>
+                  <p class="text-[10px] font-bold opacity-60 uppercase tracking-wider">Card Code</p>
+                  <p id="rfid-active-code" class="font-mono font-bold text-xl tracking-widest">SS-XXXX-XXXX</p>
+                </div>
+                <p id="rfid-active-date" class="text-xs opacity-50">Activated —</p>
+              </div>
+            </div>
+            <div class="mt-4 p-4 bg-emerald-500/5 border border-emerald-500/20 rounded-2xl">
+              <p class="text-xs opacity-70 flex items-center gap-2">
+                <i class="fa-solid fa-circle-check text-emerald-500"></i>
+                Your card is active. Tap it on any Swasthya Sathi hospital scanner to check in automatically.
+              </p>
+            </div>
+          </div>
+
+          <!-- Revoked State -->
+          <div id="rfid-revoked" class="hidden">
+            <div class="flex items-center gap-4 p-4 bg-red-500/10 border border-red-500/20 rounded-2xl">
+              <i class="fa-solid fa-ban text-red-500 text-xl"></i>
+              <div>
+                <h4 class="font-bold text-sm">Card Revoked</h4>
+                <p class="text-xs opacity-70 mt-0.5">Your RFID card has been revoked. Please contact your administrator for assistance.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Visit History -->
+        <div class="flat-panel rounded-[2rem] p-6 sm:p-8">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-heading font-bold text-lg flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-blue-500"></i> Hospital Visit History
+            </h3>
+            <button onclick="loadMyVisits()" class="btn-translucent px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+              <i class="fa-solid fa-rotate-right"></i> Refresh
+            </button>
+          </div>
+          <div id="rfid-visits-list" class="space-y-3">
+            <p class="text-center py-6 opacity-50 text-sm">Loading visit history...</p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── Drone Emergency Modal ────────────────────────────────────────────── -->
+      <div id="emergency-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+        <!-- Backdrop -->
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" id="emergency-backdrop"></div>
+        <!-- Modal Content -->
+        <div class="relative w-full max-w-lg bg-white dark:bg-[#111] rounded-3xl p-6 sm:p-8 shadow-2xl border border-red-500/20 transform transition-all">
+          <div class="absolute top-4 right-4">
+            <button id="close-emergency-btn" class="w-8 h-8 rounded-full bg-black/5 dark:bg-white/5 flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+              <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+          </div>
+          
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded-full bg-red-500/10 text-red-500 flex items-center justify-center text-xl shrink-0 border border-red-500/20">
+              <i class="fa-solid fa-truck-medical fa-beat"></i>
+            </div>
+            <div>
+              <h2 class="font-heading font-extrabold text-2xl text-red-600 dark:text-red-500">Emergency Delivery</h2>
+              <p class="text-sm opacity-70">Request immediate drone delivery for critical medicine.</p>
+            </div>
+          </div>
+
+          <form id="emergency-form" class="space-y-5">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider opacity-70 mb-2">What is the problem or required medicine?</label>
+              <textarea id="emergency-details" rows="3" class="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-red-500 transition-colors" placeholder="e.g., Heart Attack, Asthma Inhaler, Nitroglycerin..." required></textarea>
+            </div>
+            
+            <div class="bg-red-500/5 border border-red-500/20 rounded-xl p-4 flex items-start gap-3">
+              <i class="fa-solid fa-location-crosshairs text-red-500 mt-1"></i>
+              <div class="text-xs">
+                <p class="font-bold mb-1">GPS Location Required</p>
+                <p class="opacity-70">We will use your device's GPS to find the nearest pharmacy by road and dispatch the drone directly to your location.</p>
+              </div>
+            </div>
+
+            <button type="submit" id="emergency-submit-btn" class="w-full bg-red-600 hover:bg-red-700 text-white rounded-xl py-4 font-bold transition-colors flex items-center justify-center gap-2">
+              <i class="fa-solid fa-paper-plane"></i>
+              <span>Find Nearest Pharmacy & Launch Drone</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
     </main>
   </div>
 
@@ -588,7 +782,7 @@
     <div class="flat-panel max-w-4xl w-full max-h-[90vh] rounded-3xl p-6 flex flex-col justify-between space-y-4">
       <div class="flex items-center justify-between border-b border-black/15 dark:border-white/15 pb-4">
         <h3 id="doc-modal-title" class="font-heading font-bold text-lg">Document Viewer</h3>
-        <button id="close-modal-btn" class="w-10 h-10 rounded-full bg-black/5 dark:bg-white/10 hover:bg-black/10 dark:hover:bg-red-500/20 border border-black/20 dark:border-white/20 hover:border-red-500/50 flex items-center justify-center text-black dark:text-white hover:text-red-600 dark:hover:text-red-400 transition-all cursor-pointer shadow-sm z-50">
+        <button id="close-modal-btn" class="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/50 flex items-center justify-center text-white transition-all cursor-pointer shadow-sm z-50">
           <i class="fa-solid fa-xmark text-lg"></i>
         </button>
       </div>
@@ -603,7 +797,7 @@
     import { auth, db, API_BASE } from '../js/firebase-config.js';
     import { requireRole, signOutUser, getToken } from '../js/auth-guard.js';
     import { subscribeToApprovedAds, incrementAdClick, incrementAdImpression } from '../js/ads-config.js';
-    import { collection, query, where, getDocs, doc, getDoc, updateDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+    import { collection, query, where, getDocs, doc, getDoc, updateDoc, onSnapshot, orderBy } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
     import { initDarkMode, formatDate, recordTypeIcon, recordTypeLabel, initials, resolveFileUrl, toast } from '../js/utils.js';
 
     let currentPatientData = null;
@@ -625,6 +819,9 @@
         await loadPatientProfile(user.uid);
         await loadHospitalsList();
         setupShopView();
+
+        // Store token for RFID API calls
+        window._patientToken = await getToken();
       });
     });
 
@@ -664,8 +861,10 @@
         'timeline-view': 'Medical Timeline',
         'upload-view': 'Upload Record',
         'permissions-view': 'Access Control',
-        'qr-view': 'Emergency QR'
+        'qr-view': 'Emergency QR',
+        'rfid-view': 'My RFID Card'
       };
+      if (targetId === 'rfid-view') initRfidView();
       if (viewTitle) viewTitle.textContent = titleMap[targetId] || 'Portal';
 
       // Hide mobile sidebar on selection
@@ -839,6 +1038,13 @@
         // Sort descending by date
         currentRecords.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
 
+        // Populate AI Records Dropdown
+        const aiSelect = document.getElementById('ai-record-select');
+        if (aiSelect) {
+          aiSelect.innerHTML = '<option value="">Select a record...</option>' + currentRecords.map(r => `<option value="${r.id}">${recordTypeLabel(r.type)} - ${formatDate(r.date)} (${r.hospitalName || 'Self'})</option>`).join('');
+        }
+
+
         // Update Overview Stats
         document.getElementById('stat-records').textContent = currentRecords.length;
 
@@ -852,21 +1058,23 @@
 
         // Render Views
         renderOverviewRecentRecords(currentRecords.slice(0, 3));
-        renderTimelineRecords(currentRecords, 'all');
+        renderTimelineView(currentRecords);
       });
     }
     // ── Listen to Appointments ────────────────────────────────
     function listenToAppointments(healthId) {
       const aptRef = collection(db, 'appointments');
-      const q = query(aptRef, where('healthId', '==', healthId), orderBy('datetime', 'asc'));
+      const q = query(aptRef, where('healthId', '==', healthId));
       
       onSnapshot(q, (snapshot) => {
         const now = new Date();
         let nextAppointment = null;
         
+        const appointments = snapshot.docs.map(docSnap => docSnap.data());
+        appointments.sort((a, b) => new Date(a.datetime) - new Date(b.datetime));
+        
         // Find the first appointment that is in the future
-        for (const docSnap of snapshot.docs) {
-          const apt = docSnap.data();
+        for (const apt of appointments) {
           if (new Date(apt.datetime) > now && apt.status !== 'cancelled') {
             nextAppointment = apt;
             break;
@@ -1024,7 +1232,11 @@
       modalBody.innerHTML = `
         <div class="w-full space-y-4 text-center">
           ${mediaHtml}
-          <div class="pt-2 flex items-center justify-center gap-3">
+          <div class="pt-2 flex flex-col sm:flex-row items-center justify-center gap-3">
+            <button onclick="document.getElementById('doc-modal').classList.add('hidden')" class="px-6 py-3 rounded-full text-xs font-bold flex items-center gap-2 border border-white/50 bg-white/10 hover:bg-white/20 text-white transition-all cursor-pointer">
+              <i class="fa-solid fa-xmark text-sm"></i>
+              <span>Close Panel</span>
+            </button>
             <a href="${fullUrl}" target="_blank" download class="btn-primary px-6 py-3 rounded-full text-xs font-bold flex items-center gap-2">
               <i class="fa-solid fa-file-arrow-down text-sm"></i>
               <span>Open Original File in New Tab / Download</span>
@@ -1555,6 +1767,253 @@
         `;
       }).join('');
     }
+
+    // ── RFID Card View ───────────────────────────────────────────────────────
+    const RFID_API = 'http://localhost:8000';
+    let _rfidInited = false;
+
+    async function initRfidView() {
+      if (_rfidInited) return;
+      _rfidInited = true;
+      await loadMyCard();
+      await loadMyVisits();
+      setupActivationForm();
+    }
+
+    async function loadMyCard() {
+      document.getElementById('rfid-loading').classList.remove('hidden');
+      ['rfid-no-card','rfid-pending','rfid-mailed','rfid-active','rfid-revoked'].forEach(id => {
+        document.getElementById(id)?.classList.add('hidden');
+      });
+      try {
+        const res = await fetch(`${RFID_API}/api/rfid/cards/my`, {
+          headers: { Authorization: `Bearer ${window._patientToken}` }
+        });
+        const data = await res.json();
+        document.getElementById('rfid-loading').classList.add('hidden');
+        const status = data.status || 'none';
+        if (status === 'none') {
+          document.getElementById('rfid-no-card').classList.remove('hidden');
+        } else if (status === 'pending') {
+          document.getElementById('rfid-pending').classList.remove('hidden');
+        } else if (status === 'mailed') {
+          document.getElementById('rfid-mailed').classList.remove('hidden');
+        } else if (status === 'active') {
+          document.getElementById('rfid-active').classList.remove('hidden');
+          document.getElementById('rfid-active-code').textContent = data.card?.card_code || '—';
+          const activatedAt = data.card?.activated_at;
+          document.getElementById('rfid-active-date').textContent = activatedAt
+            ? `Activated ${new Date(activatedAt).toLocaleDateString('en-IN', {day:'2-digit',month:'long',year:'numeric'})}`
+            : 'Activation date unknown';
+        } else if (status === 'revoked') {
+          document.getElementById('rfid-revoked').classList.remove('hidden');
+        }
+      } catch(e) {
+        document.getElementById('rfid-loading').classList.add('hidden');
+        toast('Failed to load card status', 'error');
+      }
+    }
+
+    window.loadMyVisits = async function() {
+      const container = document.getElementById('rfid-visits-list');
+      if (!container) return;
+      container.innerHTML = '<p class="text-center py-6 opacity-50 text-sm">Loading...</p>';
+      try {
+        const res = await fetch(`${RFID_API}/api/visits/patient/my`, {
+          headers: { Authorization: `Bearer ${window._patientToken}` }
+        });
+        const data = await res.json();
+        if (!data.visits || data.visits.length === 0) {
+          container.innerHTML = '<p class="text-center py-6 opacity-50 text-sm">No hospital visits recorded yet.</p>';
+          return;
+        }
+        const statusColors = {
+          open: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+          billed: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+          discharged: 'bg-gray-500/10 text-gray-500',
+          cancelled: 'bg-red-500/10 text-red-600 dark:text-red-400'
+        };
+        container.innerHTML = data.visits.map(v => `
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border border-black/10 dark:border-white/10 rounded-2xl bg-black/3 dark:bg-white/3 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+            <div class="flex items-center gap-4">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center flex-shrink-0">
+                <i class="fa-solid fa-hospital text-blue-500 text-sm"></i>
+              </div>
+              <div>
+                <p class="font-bold text-sm">${v.hospital_name || '—'}</p>
+                <p class="text-xs opacity-60 font-mono">${v.check_in_at ? new Date(v.check_in_at).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—'}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full ${statusColors[v.status] || 'bg-gray-500/10 text-gray-500'}">${v.status}</span>
+              <span class="text-xs opacity-50">${v.scan_count || 0} scan${v.scan_count !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+        `).join('');
+      } catch(e) {
+        container.innerHTML = `<p class="text-center py-6 text-red-500 text-sm">${e.message}</p>`;
+      }
+    };
+
+    function setupActivationForm() {
+      const form = document.getElementById('rfid-activate-form');
+      if (!form) return;
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const card_code = document.getElementById('rfid-code-input').value.trim().toUpperCase();
+        if (!card_code) { toast('Enter card code', 'error'); return; }
+        const btn = form.querySelector('button[type=submit]');
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Activating...';
+        btn.disabled = true;
+        try {
+          const res = await fetch(`${RFID_API}/api/rfid/cards/activate`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${window._patientToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ card_code })
+          });
+          const d = await res.json();
+          if (res.ok) {
+            toast('🎉 Card activated! You can now scan at hospitals.', 'success');
+            _rfidInited = false;
+            await loadMyCard();
+          } else { toast(`❌ ${d.detail}`, 'error'); }
+        } finally { btn.innerHTML = orig; btn.disabled = false; }
+      });
+    }
+
+    // ── AI Assistant Logic ───────────────────────────────────────────────────
+    const aiAskBtn = document.getElementById('ai-ask-btn');
+    if (aiAskBtn) {
+      aiAskBtn.addEventListener('click', async () => {
+        const recordId = document.getElementById('ai-record-select').value;
+        const query = document.getElementById('ai-query-input').value.trim();
+        const respContainer = document.getElementById('ai-response-container');
+        const respText = document.getElementById('ai-response-text');
+        
+        if (!recordId) { toast('Please select a medical record first', 'error'); return; }
+        if (!query) { toast('Please ask a question', 'error'); return; }
+        
+        const origHtml = aiAskBtn.innerHTML;
+        aiAskBtn.disabled = true;
+        aiAskBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Analyzing with AI...';
+        respContainer.classList.add('hidden');
+        
+        try {
+          const res = await fetch(`${RFID_API || 'http://localhost:8000'}/api/ai/summarize`, {
+            method: 'POST',
+            headers: { Authorization: `Bearer ${window._patientToken}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ record_id: recordId, query: query })
+          });
+          
+          const data = await res.json();
+          if (res.ok) {
+            respText.textContent = data.response;
+            respContainer.classList.remove('hidden');
+          } else {
+            toast(`AI Failed: ${data.detail}`, 'error');
+          }
+        } catch (e) {
+          toast('Error connecting to AI service', 'error');
+        } finally {
+          aiAskBtn.disabled = false;
+          aiAskBtn.innerHTML = origHtml;
+        }
+      });
+    }
+
+    // ── Emergency Drone Logic ────────────────────────────────────────────────
+    const droneSidebarBtn = document.getElementById('drone-emergency-sidebar-btn');
+    const emergencyModal = document.getElementById('emergency-modal');
+    const closeEmergencyBtn = document.getElementById('close-emergency-btn');
+    const emergencyBackdrop = document.getElementById('emergency-backdrop');
+    const emergencyForm = document.getElementById('emergency-form');
+
+    function toggleEmergencyModal(show) {
+      if (show) {
+        emergencyModal.classList.remove('hidden');
+      } else {
+        emergencyModal.classList.add('hidden');
+      }
+    }
+
+    if (droneSidebarBtn) droneSidebarBtn.addEventListener('click', () => toggleEmergencyModal(true));
+    if (closeEmergencyBtn) closeEmergencyBtn.addEventListener('click', () => toggleEmergencyModal(false));
+    if (emergencyBackdrop) emergencyBackdrop.addEventListener('click', () => toggleEmergencyModal(false));
+
+    if (emergencyForm) {
+      emergencyForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const details = document.getElementById('emergency-details').value.trim();
+        const submitBtn = document.getElementById('emergency-submit-btn');
+        
+        if (!details) { toast('Please provide details', 'error'); return; }
+        if (!navigator.geolocation) { toast('Geolocation is not supported by your browser', 'error'); return; }
+
+        const origHtml = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Getting GPS Location...';
+
+        navigator.geolocation.getCurrentPosition(async (position) => {
+          const lat = position.coords.latitude;
+          const lng = position.coords.longitude;
+          
+          submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Locating Nearest Pharmacy...';
+          
+          try {
+            const res = await fetch(`${API_BASE}/api/emergency/request`, {
+              method: 'POST',
+              headers: { Authorization: `Bearer ${window._patientToken}`, 'Content-Type': 'application/json' },
+              body: JSON.stringify({ details, lat, lng })
+            });
+            const data = await res.json();
+            
+            if (res.ok) {
+              toast(`✅ Order sent to nearest pharmacy (${data.pharmacy.name}). Drone dispatching soon!`, 'success');
+              toggleEmergencyModal(false);
+              document.getElementById('emergency-details').value = '';
+            } else {
+              toast(`❌ Failed: ${data.detail}`, 'error');
+            }
+          } catch(err) {
+            toast('Failed to connect to server', 'error');
+          } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = origHtml;
+          }
+        }, (error) => {
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = origHtml;
+          toast('Failed to get GPS location. Please allow location access.', 'error');
+        }, { enableHighAccuracy: true });
+      });
+    }
+
+    const testDroneBtn = document.getElementById('test-drone-btn');
+    if (testDroneBtn) {
+      testDroneBtn.addEventListener('click', async () => {
+        const origHtml = testDroneBtn.innerHTML;
+        testDroneBtn.disabled = true;
+        testDroneBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Triggering...';
+        
+        try {
+          const res = await fetch(`http://10.75.93.203/spin`, { signal: AbortSignal.timeout(8000) });
+          
+          if (res.ok) {
+            const data = await res.json();
+            toast(`✅ Drone spinning! Speed: ${data.speed}/255 for 3s`, 'success');
+          } else {
+            toast(`❌ Failed to spin drone`, 'error');
+          }
+        } catch(err) {
+          toast('Failed to connect to drone at 10.75.93.203', 'error');
+        } finally {
+          testDroneBtn.disabled = false;
+          testDroneBtn.innerHTML = origHtml;
+        }
+      });
+    }
+
   </script>
 </body>
 </html>

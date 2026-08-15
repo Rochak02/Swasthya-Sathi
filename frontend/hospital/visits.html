@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Visit Management — Swasthya Sathi</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: { extend: { fontFamily: { sans: ['"Plus Jakarta Sans"', 'sans-serif'], heading: ['Outfit', 'sans-serif'] } } }
+    }
+  </script>
+  <link rel="stylesheet" href="../css/custom.css">
+</head>
+<body class="bg-white dark:bg-black text-black dark:text-white antialiased min-h-screen">
+
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8 gap-4">
+      <div class="flex items-center gap-4">
+        <a href="dashboard.html" class="w-10 h-10 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+          <i class="fa-solid fa-arrow-left"></i>
+        </a>
+        <div>
+          <span class="badge-minimal text-[10px] mb-1">RFID System</span>
+          <h1 class="font-heading font-extrabold text-2xl sm:text-3xl tracking-tight">Visit Management</h1>
+          <p class="text-xs opacity-60">Patient check-ins via RFID scanner</p>
+        </div>
+      </div>
+
+      <!-- Status Filter -->
+      <div class="flex gap-2 flex-wrap">
+        <button onclick="filterVisits('all')" data-filter="all" class="filter-btn px-4 py-2 rounded-xl text-xs font-bold border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors active">All</button>
+        <button onclick="filterVisits('open')" data-filter="open" class="filter-btn px-4 py-2 rounded-xl text-xs font-bold border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">Open</button>
+        <button onclick="filterVisits('billed')" data-filter="billed" class="filter-btn px-4 py-2 rounded-xl text-xs font-bold border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">Billed</button>
+        <button onclick="filterVisits('discharged')" data-filter="discharged" class="filter-btn px-4 py-2 rounded-xl text-xs font-bold border border-black/10 dark:border-white/10 hover:bg-black/5 dark:hover:bg-white/5 transition-colors">Discharged</button>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="toast-bar" class="hidden fixed top-6 right-6 z-50 p-4 rounded-2xl border text-xs font-bold shadow-2xl backdrop-blur-md transition-all"></div>
+
+    <!-- Visits Table -->
+    <div class="flat-panel rounded-[2rem] overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="border-b border-black/10 dark:border-white/10 text-left">
+              <th class="px-6 py-4 text-xs font-bold opacity-60 uppercase tracking-wider">Patient</th>
+              <th class="px-6 py-4 text-xs font-bold opacity-60 uppercase tracking-wider">Health ID</th>
+              <th class="px-6 py-4 text-xs font-bold opacity-60 uppercase tracking-wider">Check-in</th>
+              <th class="px-6 py-4 text-xs font-bold opacity-60 uppercase tracking-wider">Scans</th>
+              <th class="px-6 py-4 text-xs font-bold opacity-60 uppercase tracking-wider">Status</th>
+              <th class="px-6 py-4 text-xs font-bold opacity-60 uppercase tracking-wider">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="visits-table-body">
+            <tr><td colspan="6" class="text-center py-12 opacity-50">Loading visits...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Visit Detail Modal -->
+  <div id="visit-modal" class="hidden fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="flat-panel bg-white dark:bg-black rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-8 relative border border-black/10 dark:border-white/10">
+      <button onclick="closeModal()" class="absolute top-6 right-6 opacity-50 hover:opacity-100 transition-opacity">
+        <i class="fa-solid fa-xmark text-xl"></i>
+      </button>
+
+      <div id="modal-content">
+        <p class="text-center py-8 opacity-50">Loading...</p>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    .filter-btn.active { background: rgba(0,0,0,0.08); }
+    @media (prefers-color-scheme: dark) { .filter-btn.active { background: rgba(255,255,255,0.1); } }
+    html.dark .filter-btn.active { background: rgba(255,255,255,0.1); }
+  </style>
+
+  <script type="module">
+    import { requireRole, signOutUser, getToken } from '../js/auth-guard.js';
+    import { auth, db, API_BASE } from '../js/firebase-config.js';
+    import { toast, initDarkMode } from '../js/utils.js';
+
+    initDarkMode();
+
+    const API = 'http://localhost:8000';
+    let _token = null;
+    let _allVisits = [];
+    let _currentFilter = 'all';
+
+    requireRole(['hospital'], async (user, userData) => {
+        _token = await getToken();
+        await loadVisits();
+
+        // If opened with ?visit=... param, auto-open that visit
+        const params = new URLSearchParams(window.location.search);
+        const preload = params.get('visit');
+        if (preload) openVisitModal(preload);
+    });
+
+    async function loadVisits() {
+        const tbody = document.getElementById('visits-table-body');
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center py-12 opacity-50">Loading...</td></tr>';
+        try {
+            const res = await fetch(`${API}/api/visits`, { headers: { Authorization: `Bearer ${_token}` } });
+            const data = await res.json();
+            _allVisits = data.visits || [];
+            renderVisits(_currentFilter);
+        } catch(e) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500">${e.message}</td></tr>`;
+        }
+    }
+
+    function renderVisits(filter) {
+        _currentFilter = filter;
+        const tbody = document.getElementById('visits-table-body');
+        const filtered = filter === 'all' ? _allVisits : _allVisits.filter(v => v.status === filter);
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filter === filter);
+        });
+
+        if (filtered.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" class="text-center py-12 opacity-50">No ${filter === 'all' ? '' : filter} visits found.</td></tr>`;
+            return;
+        }
+
+        const statusColors = {
+            open: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400',
+            billed: 'bg-blue-500/10 text-blue-600 dark:text-blue-400',
+            discharged: 'bg-gray-500/10 text-gray-500',
+            cancelled: 'bg-red-500/10 text-red-600 dark:text-red-400'
+        };
+
+        tbody.innerHTML = filtered.map(v => {
+            const checkIn = v.check_in_at ? new Date(v.check_in_at).toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+            const cls = statusColors[v.status] || 'bg-gray-500/10 text-gray-500';
+            return `
+                <tr class="border-b border-black/5 dark:border-white/5 hover:bg-black/3 dark:hover:bg-white/3 transition-colors">
+                    <td class="px-6 py-4 font-bold">${v.patient_name || '—'}</td>
+                    <td class="px-6 py-4 font-mono text-xs opacity-70">${v.health_id || '—'}</td>
+                    <td class="px-6 py-4 text-xs opacity-70">${checkIn}</td>
+                    <td class="px-6 py-4 text-center font-mono">${v.scans?.length || 0}</td>
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold ${cls}">${v.status}</span>
+                    </td>
+                    <td class="px-6 py-4">
+                        <button onclick="openVisitModal('${v.visit_id}')" class="px-3 py-1.5 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-xs font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                            View <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    window.filterVisits = renderVisits;
+
+    window.openVisitModal = async function(visitId) {
+        const modal = document.getElementById('visit-modal');
+        const content = document.getElementById('modal-content');
+        modal.classList.remove('hidden');
+        content.innerHTML = '<p class="text-center py-8 opacity-50">Loading...</p>';
+
+        try {
+            const res = await fetch(`${API}/api/visits/${visitId}`, { headers: { Authorization: `Bearer ${_token}` } });
+            const v = await res.json();
+
+            const checkIn = v.check_in_at ? new Date(v.check_in_at).toLocaleString('en-IN',{day:'2-digit',month:'long',year:'numeric',hour:'2-digit',minute:'2-digit'}) : '—';
+            const scansHtml = (v.scans || []).map((s,i) => `
+                <div class="flex items-center gap-3 py-2 border-b border-black/5 dark:border-white/5">
+                    <span class="text-xs font-mono opacity-50">#${i+1}</span>
+                    <span class="text-xs opacity-70">${new Date(s.at).toLocaleString('en-IN')}</span>
+                    <span class="text-xs font-mono opacity-50">${s.hub_id}</span>
+                </div>
+            `).join('');
+
+            content.innerHTML = `
+                <div class="space-y-6">
+                    <div>
+                        <span class="badge-minimal text-[10px] mb-2">Visit Record</span>
+                        <h2 class="font-heading font-extrabold text-2xl">${v.patient_name || '—'}</h2>
+                        <p class="font-mono text-xs opacity-60 mt-1">${v.health_id || '—'} · Hub: ${v.hub_id || '—'}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div class="flat-panel p-4 rounded-2xl">
+                            <p class="text-[10px] font-bold uppercase opacity-60 mb-1">Check-in</p>
+                            <p class="font-bold">${checkIn}</p>
+                        </div>
+                        <div class="flat-panel p-4 rounded-2xl">
+                            <p class="text-[10px] font-bold uppercase opacity-60 mb-1">Status</p>
+                            <p class="font-bold capitalize">${v.status || '—'}</p>
+                        </div>
+                        <div class="flat-panel p-4 rounded-2xl">
+                            <p class="text-[10px] font-bold uppercase opacity-60 mb-1">Total Scans</p>
+                            <p class="font-bold font-mono text-xl">${v.scans?.length || 0}</p>
+                        </div>
+                        <div class="flat-panel p-4 rounded-2xl">
+                            <p class="text-[10px] font-bold uppercase opacity-60 mb-1">Bill ID</p>
+                            <p class="font-mono text-xs">${v.bill_id || 'Not billed'}</p>
+                        </div>
+                    </div>
+
+                    <div class="flat-panel p-4 rounded-2xl">
+                        <p class="text-[10px] font-bold uppercase opacity-60 mb-2">Scan History</p>
+                        <div class="max-h-32 overflow-y-auto">${scansHtml || '<p class="text-xs opacity-50">No scans recorded.</p>'}</div>
+                    </div>
+
+                    <!-- Notes -->
+                    <div>
+                        <label class="block text-[10px] font-bold uppercase opacity-60 mb-1.5">Clinical Notes</label>
+                        <textarea id="visit-notes" rows="3" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm resize-none focus:outline-none focus:border-black/30 dark:focus:border-white/30 transition-colors">${v.notes || ''}</textarea>
+                        <button onclick="saveNotes('${visitId}')" class="mt-2 px-4 py-2 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-xs font-bold hover:bg-black/10 transition-colors">Save Notes</button>
+                    </div>
+
+                    <!-- Actions -->
+                    ${v.status === 'open' ? `
+                    <div class="flex flex-col sm:flex-row gap-3 pt-2 border-t border-black/10 dark:border-white/10">
+                        <div class="flex-1">
+                            <label class="block text-[10px] font-bold uppercase opacity-60 mb-1.5">Bill ID (to link)</label>
+                            <input type="text" id="bill-id-input" placeholder="e.g. BILL-2026-001" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm font-mono focus:outline-none focus:border-blue-500/50 transition-colors">
+                        </div>
+                        <div class="flex items-end gap-2">
+                            <button onclick="linkBill('${visitId}')" class="px-4 py-3 bg-blue-500 hover:bg-blue-600 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-500/20">Link Bill</button>
+                            <button onclick="dischargeVisit('${visitId}')" class="px-4 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-red-500/20">Discharge</button>
+                        </div>
+                    </div>` : ''}
+                </div>
+            `;
+        } catch(e) {
+            content.innerHTML = `<p class="text-center py-8 text-red-500">${e.message}</p>`;
+        }
+    };
+
+    window.closeModal = function() {
+        document.getElementById('visit-modal').classList.add('hidden');
+    };
+
+    window.saveNotes = async function(visitId) {
+        const notes = document.getElementById('visit-notes').value;
+        const res = await fetch(`${API}/api/visits/${visitId}/notes`, {
+            method: 'PUT',
+            headers: { Authorization: `Bearer ${_token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notes })
+        });
+        const d = await res.json();
+        toast(res.ok ? '✅ Notes saved' : `❌ ${d.detail}`, res.ok ? 'success' : 'error');
+    };
+
+    window.linkBill = async function(visitId) {
+        const bill_id = document.getElementById('bill-id-input').value.trim();
+        if (!bill_id) { toast('Enter a bill ID', 'error'); return; }
+        const res = await fetch(`${API}/api/visits/${visitId}/bill`, {
+            method: 'PUT',
+            headers: { Authorization: `Bearer ${_token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bill_id })
+        });
+        const d = await res.json();
+        if (res.ok) {
+            toast('✅ Bill linked', 'success');
+            await loadVisits();
+            openVisitModal(visitId);
+        } else { toast(`❌ ${d.detail}`, 'error'); }
+    };
+
+    window.dischargeVisit = async function(visitId) {
+        if (!confirm('Mark this patient as discharged?')) return;
+        const notes = document.getElementById('visit-notes')?.value || '';
+        const res = await fetch(`${API}/api/visits/${visitId}/discharge`, {
+            method: 'PUT',
+            headers: { Authorization: `Bearer ${_token}`, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ notes })
+        });
+        const d = await res.json();
+        if (res.ok) {
+            toast('✅ Patient discharged', 'success');
+            closeModal();
+            await loadVisits();
+        } else { toast(`❌ ${d.detail}`, 'error'); }
+    };
+
+    // Close modal on backdrop click
+    document.getElementById('visit-modal').addEventListener('click', (e) => {
+        if (e.target === e.currentTarget) closeModal();
+    });
+  </script>
+</body>
+</html>

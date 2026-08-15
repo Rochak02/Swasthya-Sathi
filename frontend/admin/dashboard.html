@@ -90,6 +90,11 @@
             </span>
             <span id="ads-pending-count" class="badge-minimal text-[10px] border-amber-500/30 bg-amber-500/10 text-amber-600 dark:text-amber-400">0</span>
           </button>
+
+          <button id="nav-hardware" class="admin-nav-btn nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left">
+            <i class="fa-solid fa-microchip text-base w-5"></i>
+            <span>Hardware</span>
+          </button>
         </nav>
       </div>
 
@@ -198,6 +203,141 @@
         </div>
       </div>
 
+      <!-- ── TAB 4: Hardware Management ──── -->
+      <div id="tab-hardware" class="space-y-8 hidden">
+        <div>
+          <span class="badge-minimal mb-2 text-[10px]">IoT Integration</span>
+          <h1 class="text-3xl font-extrabold font-heading tracking-tight">Hardware Management</h1>
+          <p class="text-xs opacity-60 mt-1">Issue patient RFID cards and manage hospital scanner hubs.</p>
+        </div>
+
+        <!-- Sub-tabs -->
+        <div class="flex gap-2 border-b border-black/10 dark:border-white/10">
+          <button id="hw-tab-cards" class="hw-tab-btn px-5 py-2.5 text-xs font-bold border-b-2 border-current transition-all" onclick="hwSwitchTab('cards')">
+            <i class="fa-solid fa-id-card mr-1.5"></i> RFID Cards
+          </button>
+          <button id="hw-tab-hubs" class="hw-tab-btn px-5 py-2.5 text-xs font-bold border-b-2 border-transparent opacity-50 hover:opacity-80 transition-all" onclick="hwSwitchTab('hubs')">
+            <i class="fa-solid fa-wifi mr-1.5"></i> Scanner Hubs
+          </button>
+        </div>
+
+        <!-- ── Card Management Panel ── -->
+        <div id="hw-panel-cards" class="space-y-6">
+
+          <!-- Issue New Card -->
+          <div class="flat-panel rounded-[2rem] p-6 sm:p-8">
+            <h3 class="font-heading font-bold text-lg mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-plus-circle text-emerald-500"></i> Issue New RFID Card
+            </h3>
+            <p class="text-xs opacity-50 mb-6">Select a patient without a card, enter the raw UID from the physical RFID tag, and issue.</p>
+            <form id="issue-card-form" class="flex flex-col md:flex-row gap-4 items-end">
+              <div class="flex-1">
+                <label class="block text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1.5">Patient</label>
+                <select id="hw-patient-select" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:border-emerald-500/50 transition-colors" required>
+                  <option value="">Loading patients...</option>
+                </select>
+              </div>
+              <div class="flex-1">
+                <label class="block text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1.5">Raw RFID UID (from scanner)</label>
+                <input type="text" id="hw-raw-uid" placeholder="e.g. 04:A3:22:1F:AB:CD:EF" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:border-emerald-500/50 transition-colors font-mono" required>
+              </div>
+              <div>
+                <button type="submit" class="px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg shadow-emerald-500/20 whitespace-nowrap">
+                  <i class="fa-solid fa-id-card"></i> Issue Card
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- All Cards Table -->
+          <div class="flat-panel rounded-[2rem] p-6 sm:p-8">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="font-heading font-bold text-lg flex items-center gap-2">
+                <i class="fa-solid fa-list text-blue-500"></i> All Issued Cards
+              </h3>
+              <button onclick="loadAllCards()" class="btn-translucent px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+                <i class="fa-solid fa-rotate-right"></i> Refresh
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="border-b border-black/10 dark:border-white/10">
+                    <th class="text-left py-3 px-2 font-bold opacity-60">Patient</th>
+                    <th class="text-left py-3 px-2 font-bold opacity-60">Health ID</th>
+                    <th class="text-left py-3 px-2 font-bold opacity-60">Card Code</th>
+                    <th class="text-left py-3 px-2 font-bold opacity-60">Status</th>
+                    <th class="text-left py-3 px-2 font-bold opacity-60">Issued</th>
+                    <th class="text-left py-3 px-2 font-bold opacity-60">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="hw-cards-table-body">
+                  <tr><td colspan="6" class="text-center py-8 opacity-50">Click "Hardware" to load.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Hub Management Panel ── -->
+        <div id="hw-panel-hubs" class="space-y-6 hidden">
+
+          <!-- Register New Hub -->
+          <div class="flat-panel rounded-[2rem] p-6 sm:p-8">
+            <h3 class="font-heading font-bold text-lg mb-1 flex items-center gap-2">
+              <i class="fa-solid fa-plus-circle text-violet-500"></i> Register New Hub
+            </h3>
+            <p class="text-xs opacity-50 mb-6">Enter the Hub ID (printed on the device sticker) and assign it to a hospital.</p>
+            <form id="register-hub-form" class="flex flex-col md:flex-row gap-4 items-end">
+              <div class="flex-1">
+                <label class="block text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1.5">Hub ID</label>
+                <input type="text" id="hw-hub-id" placeholder="e.g. SS-HUB-0001" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:border-violet-500/50 transition-colors font-mono uppercase" required>
+              </div>
+              <div class="flex-1">
+                <label class="block text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1.5">Assign to Hospital</label>
+                <select id="hw-hospital-select" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm focus:outline-none focus:border-violet-500/50 transition-colors" required>
+                  <option value="">Loading hospitals...</option>
+                </select>
+              </div>
+              <div>
+                <button type="submit" class="px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg shadow-violet-500/20 whitespace-nowrap">
+                  <i class="fa-solid fa-wifi"></i> Register Hub
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Hubs Table -->
+          <div class="flat-panel rounded-[2rem] p-6 sm:p-8">
+            <div class="flex items-center justify-between mb-6">
+              <h3 class="font-heading font-bold text-lg flex items-center gap-2">
+                <i class="fa-solid fa-server text-violet-500"></i> All Scanner Hubs
+              </h3>
+              <button onclick="loadAllHubs()" class="btn-translucent px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+                <i class="fa-solid fa-rotate-right"></i> Refresh
+              </button>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs">
+                <thead>
+                  <tr class="border-b border-black/10 dark:border-white/10">
+                    <th class="text-left py-3 px-2 font-bold opacity-60">Hub ID</th>
+                    <th class="text-left py-3 px-2 font-bold opacity-60">Hospital</th>
+                    <th class="text-left py-3 px-2 font-bold opacity-60">Status</th>
+                    <th class="text-left py-3 px-2 font-bold opacity-60">Last Seen</th>
+                    <th class="text-left py-3 px-2 font-bold opacity-60">Firmware</th>
+                    <th class="text-left py-3 px-2 font-bold opacity-60">IP</th>
+                  </tr>
+                </thead>
+                <tbody id="hw-hubs-table-body">
+                  <tr><td colspan="6" class="text-center py-8 opacity-50">Click "Scanner Hubs" sub-tab to load.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </main>
   </div>
 
@@ -205,7 +345,7 @@
 
   <!-- ── Reject Reason Modal ────────────────────────────────────── -->
   <div id="reject-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div class="flat-panel bg-white dark:bg-black rounded-3xl shadow-2xl max-w-md w-full p-8 relative border-2 border-red-500/20">
+      <div class="bg-white dark:bg-[#121212] text-black dark:text-white rounded-3xl shadow-2xl max-w-md w-full p-8 relative border-2 border-red-500/20">
           <button id="close-reject-modal" class="absolute top-6 right-6 opacity-50 hover:opacity-100 transition-opacity">
               <i class="fa-solid fa-xmark text-lg"></i>
           </button>
@@ -223,7 +363,7 @@
 
   <!-- ── Direct Admin Ad Creation Modal ────────────────────────── -->
   <div id="direct-ad-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-md p-4">
-      <div class="flat-panel bg-white dark:bg-black rounded-3xl shadow-2xl max-w-xl w-full p-8 relative border-2 border-emerald-500/20 overflow-y-auto max-h-[90vh]">
+      <div class="bg-white dark:bg-[#121212] text-black dark:text-white rounded-3xl shadow-2xl max-w-xl w-full p-8 relative border-2 border-emerald-500/20 overflow-y-auto max-h-[90vh]">
           <button id="close-direct-ad-modal" class="absolute top-6 right-6 opacity-50 hover:opacity-100 transition-opacity">
               <i class="fa-solid fa-xmark text-lg"></i>
           </button>
@@ -315,37 +455,229 @@
       if (overlay) overlay.addEventListener('click', toggleSidebar);
 
       // ── Tab Switching ─────────────────────────────────────────────
-      const navQueue = document.getElementById('nav-queue');
-      const navMod   = document.getElementById('nav-mod');
-      const navAds   = document.getElementById('nav-ads');
-      const tabQueue = document.getElementById('tab-queue');
-      const tabMod   = document.getElementById('tab-mod');
-      const tabAds   = document.getElementById('tab-ads');
+      const navQueue    = document.getElementById('nav-queue');
+      const navMod      = document.getElementById('nav-mod');
+      const navAds      = document.getElementById('nav-ads');
+      const navHardware = document.getElementById('nav-hardware');
+      const tabQueue    = document.getElementById('tab-queue');
+      const tabMod      = document.getElementById('tab-mod');
+      const tabAds      = document.getElementById('tab-ads');
+      const tabHardware = document.getElementById('tab-hardware');
 
       function switchTab(activeNav, activeTab) {
-          [navQueue, navMod, navAds].forEach(btn => {
+          [navQueue, navMod, navAds, navHardware].forEach(btn => {
               btn.classList.remove('active');
           });
-          [tabQueue, tabMod, tabAds].forEach(t => t.classList.add('hidden'));
-
+          [tabQueue, tabMod, tabAds, tabHardware].forEach(t => t.classList.add('hidden'));
           activeNav.classList.add('active');
           activeTab.classList.remove('hidden');
-          
+          if (activeTab === tabHardware) initHardwareTab();
           if(window.innerWidth < 768 && !sidebar.classList.contains('-translate-x-full')) {
               toggleSidebar();
           }
       }
 
-      navQueue.addEventListener('click', () => switchTab(navQueue, tabQueue));
-      navMod.addEventListener('click',   () => switchTab(navMod,   tabMod));
-      navAds.addEventListener('click',   () => switchTab(navAds,   tabAds));
+      navQueue.addEventListener('click',    () => switchTab(navQueue,    tabQueue));
+      navMod.addEventListener('click',      () => switchTab(navMod,      tabMod));
+      navAds.addEventListener('click',      () => switchTab(navAds,      tabAds));
+      navHardware.addEventListener('click', () => switchTab(navHardware, tabHardware));
 
       // ── Auth Guard ────────────────────────────────────────────────
-      requireRole(['admin'], (user, userData) => {
+      let _adminToken = null;
+      requireRole(['admin'], async (user, userData) => {
           document.getElementById('logout-btn').addEventListener('click', signOutUser);
+          _adminToken = await getToken();
           setupListeners();
           setupAdsQueueListener();
       });
+
+      // ── Hardware Tab ──────────────────────────────────────────────
+      const HW_API = 'http://localhost:8000';
+
+      window.hwSwitchTab = function(tab) {
+          document.getElementById('hw-panel-cards').classList.toggle('hidden', tab !== 'cards');
+          document.getElementById('hw-panel-hubs').classList.toggle('hidden', tab !== 'hubs');
+          const btnCards = document.getElementById('hw-tab-cards');
+          const btnHubs  = document.getElementById('hw-tab-hubs');
+          btnCards.classList.toggle('border-transparent', tab !== 'cards');
+          btnCards.classList.toggle('opacity-50', tab !== 'cards');
+          btnHubs.classList.toggle('border-transparent', tab !== 'hubs');
+          btnHubs.classList.toggle('opacity-50', tab !== 'hubs');
+          if (tab === 'hubs') loadAllHubs();
+          if (tab === 'cards') loadAllCards();
+      };
+
+      function statusBadge(status) {
+          const map = {
+              pending:  'bg-amber-500/15 text-amber-600 dark:text-amber-400',
+              mailed:   'bg-blue-500/15 text-blue-600 dark:text-blue-400',
+              active:   'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400',
+              revoked:  'bg-red-500/15 text-red-600 dark:text-red-400',
+              assigned: 'bg-violet-500/15 text-violet-600 dark:text-violet-400',
+              offline:  'bg-gray-500/15 text-gray-500',
+          };
+          const cls = map[status] || 'bg-gray-500/15 text-gray-500';
+          return `<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold ${cls}">${status || '—'}</span>`;
+      }
+
+      function fmtDate(iso) {
+          if (!iso) return '<span class="opacity-30">—</span>';
+          return new Date(iso).toLocaleString('en-IN', {day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+      }
+
+      let _hwInited = false;
+      async function initHardwareTab() {
+          if (_hwInited) return;
+          _hwInited = true;
+          await Promise.all([loadPendingPatients(), loadApprovedHospitals(), loadAllCards()]);
+          setupHardwareForms();
+      }
+
+      async function loadPendingPatients() {
+          try {
+              const res = await fetch(`${HW_API}/api/rfid/cards/pending`, { headers: { Authorization: `Bearer ${_adminToken}` } });
+              const data = await res.json();
+              const sel = document.getElementById('hw-patient-select');
+              if (!data.patients || data.patients.length === 0) {
+                  sel.innerHTML = '<option value="">All patients already have cards</option>';
+              } else {
+                  sel.innerHTML = '<option value="">— Select Patient —</option>' +
+                      data.patients.map(p => `<option value="${p.uid}">${p.name} · ${p.healthId} · ${p.email}</option>`).join('');
+              }
+          } catch(e) { console.error('loadPendingPatients:', e); }
+      }
+
+      async function loadApprovedHospitals() {
+          try {
+              const { collection: col, getDocs: gd, query: q, where: w } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+              const snap = await gd(q(col(db, 'hospitals'), w('verified', '==', true)));
+              const sel = document.getElementById('hw-hospital-select');
+              if (snap.empty) {
+                  sel.innerHTML = '<option value="">No approved hospitals found</option>';
+              } else {
+                  sel.innerHTML = '<option value="">— Select Hospital —</option>' +
+                      snap.docs.map(d => `<option value="${d.id}">${d.data().name || d.id}</option>`).join('');
+              }
+          } catch(e) { console.error('loadApprovedHospitals:', e); }
+      }
+
+      window.loadAllCards = async function() {
+          const tbody = document.getElementById('hw-cards-table-body');
+          if (!tbody) return;
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 opacity-50">Loading...</td></tr>';
+          try {
+              const res = await fetch(`${HW_API}/api/rfid/cards/all`, { headers: { Authorization: `Bearer ${_adminToken}` } });
+              const data = await res.json();
+              if (!data.cards || data.cards.length === 0) {
+                  tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 opacity-50">No cards issued yet.</td></tr>';
+                  return;
+              }
+              tbody.innerHTML = data.cards.map(c => `
+                  <tr class="border-b border-black/5 dark:border-white/5 hover:bg-black/3 dark:hover:bg-white/3 transition-colors">
+                      <td class="py-3 px-2 font-medium">${c.patient_name || '—'}</td>
+                      <td class="py-3 px-2 opacity-70">${c.health_id || '—'}</td>
+                      <td class="py-3 px-2 font-mono font-bold text-blue-600 dark:text-blue-400">${c.card_code || '—'}</td>
+                      <td class="py-3 px-2">${statusBadge(c.status)}</td>
+                      <td class="py-3 px-2 opacity-60">${fmtDate(c.issued_at)}</td>
+                      <td class="py-3 px-2">
+                          <div class="flex gap-2">
+                              ${c.status === 'pending' ? `<button onclick="hwMailCard('${c.card_id}')" class="px-3 py-1 bg-blue-500/15 text-blue-600 dark:text-blue-400 rounded-lg text-[10px] font-bold hover:bg-blue-500/30 transition-colors">Mark Mailed</button>` : ''}
+                              ${c.status !== 'revoked' ? `<button onclick="hwRevokeCard('${c.card_id}')" class="px-3 py-1 bg-red-500/15 text-red-600 dark:text-red-400 rounded-lg text-[10px] font-bold hover:bg-red-500/30 transition-colors">Revoke</button>` : ''}
+                          </div>
+                      </td>
+                  </tr>
+              `).join('');
+          } catch(e) { tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 text-xs">${e.message}</td></tr>`; }
+      };
+
+      window.loadAllHubs = async function() {
+          const tbody = document.getElementById('hw-hubs-table-body');
+          if (!tbody) return;
+          tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 opacity-50">Loading...</td></tr>';
+          try {
+              const res = await fetch(`${HW_API}/api/hubs`, { headers: { Authorization: `Bearer ${_adminToken}` } });
+              const data = await res.json();
+              if (!data.hubs || data.hubs.length === 0) {
+                  tbody.innerHTML = '<tr><td colspan="6" class="text-center py-8 opacity-50">No hubs registered yet.</td></tr>';
+                  return;
+              }
+              tbody.innerHTML = data.hubs.map(h => `
+                  <tr class="border-b border-black/5 dark:border-white/5 hover:bg-black/3 dark:hover:bg-white/3 transition-colors">
+                      <td class="py-3 px-2 font-mono font-bold text-violet-600 dark:text-violet-400">${h.hub_id}</td>
+                      <td class="py-3 px-2 font-medium">${h.hospital_name || '—'}</td>
+                      <td class="py-3 px-2">${statusBadge(h.status)}</td>
+                      <td class="py-3 px-2 opacity-60 text-[11px]">${fmtDate(h.last_seen)}</td>
+                      <td class="py-3 px-2 opacity-60">${h.firmware_version || '—'}</td>
+                      <td class="py-3 px-2 opacity-60 font-mono text-[11px]">${h.ip_address || '—'}</td>
+                  </tr>
+              `).join('');
+          } catch(e) { tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 text-xs">${e.message}</td></tr>`; }
+      };
+
+      window.hwMailCard = async function(cardId) {
+          if (!confirm('Mark this card as mailed to the patient?')) return;
+          const res = await fetch(`${HW_API}/api/rfid/cards/${cardId}/mail`, { method:'PUT', headers:{ Authorization:`Bearer ${_adminToken}` } });
+          const d = await res.json();
+          toast(res.ok ? '✅ Card marked as mailed' : `❌ ${d.detail}`, res.ok ? 'success' : 'error');
+          if (res.ok) loadAllCards();
+      };
+
+      window.hwRevokeCard = async function(cardId) {
+          if (!confirm('Revoke this card? The patient will lose scanner access.')) return;
+          const res = await fetch(`${HW_API}/api/rfid/cards/${cardId}/revoke`, { method:'PUT', headers:{ Authorization:`Bearer ${_adminToken}` } });
+          const d = await res.json();
+          toast(res.ok ? '🚫 Card revoked' : `❌ ${d.detail}`, res.ok ? 'warning' : 'error');
+          if (res.ok) loadAllCards();
+      };
+
+      function setupHardwareForms() {
+          document.getElementById('issue-card-form').addEventListener('submit', async (e) => {
+              e.preventDefault();
+              const patient_uid  = document.getElementById('hw-patient-select').value;
+              const raw_card_uid = document.getElementById('hw-raw-uid').value.trim();
+              if (!patient_uid || !raw_card_uid) { toast('Fill all fields', 'error'); return; }
+              const btn = e.target.querySelector('button[type=submit]');
+              const orig = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Issuing...'; btn.disabled = true;
+              try {
+                  const res = await fetch(`${HW_API}/api/rfid/cards`, {
+                      method: 'POST',
+                      headers: { Authorization:`Bearer ${_adminToken}`, 'Content-Type':'application/json' },
+                      body: JSON.stringify({ patient_uid, raw_card_uid })
+                  });
+                  const d = await res.json();
+                  if (res.ok) {
+                      toast(`✅ Card issued! Code: ${d.card_code}`, 'success');
+                      e.target.reset();
+                      await loadPendingPatients();
+                      await loadAllCards();
+                  } else { toast(`❌ ${d.detail}`, 'error'); }
+              } finally { btn.innerHTML = orig; btn.disabled = false; }
+          });
+
+          document.getElementById('register-hub-form').addEventListener('submit', async (e) => {
+              e.preventDefault();
+              const hub_id       = document.getElementById('hw-hub-id').value.trim().toUpperCase();
+              const hospital_uid = document.getElementById('hw-hospital-select').value;
+              if (!hub_id || !hospital_uid) { toast('Fill all fields', 'error'); return; }
+              const btn = e.target.querySelector('button[type=submit]');
+              const orig = btn.innerHTML; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Registering...'; btn.disabled = true;
+              try {
+                  const res = await fetch(`${HW_API}/api/hubs`, {
+                      method: 'POST',
+                      headers: { Authorization:`Bearer ${_adminToken}`, 'Content-Type':'application/json' },
+                      body: JSON.stringify({ hub_id, hospital_uid })
+                  });
+                  const d = await res.json();
+                  if (res.ok) {
+                      toast(`✅ Hub ${hub_id} registered!`, 'success');
+                      e.target.reset();
+                      await loadAllHubs();
+                  } else { toast(`❌ ${d.detail}`, 'error'); }
+              } finally { btn.innerHTML = orig; btn.disabled = false; }
+          });
+      }
+
+
 
       // ── Real-time Ads Queue Listener ──────────────────────────────
       function setupAdsQueueListener() {
@@ -566,7 +898,7 @@
       window.approveProvider = async (uid, role) => {
           try {
               const token = await getToken();
-              const res = await fetch(`${API_BASE}/admin/verify/${uid}`, {
+              const res = await fetch(`${API_BASE}/api/admin/verify/${uid}`, {
                   method: 'PUT',
                   headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                   body: JSON.stringify({ role })
@@ -582,7 +914,7 @@
           if (!confirm('Are you sure you want to reject and delete this provider?')) return;
           try {
               const token = await getToken();
-              const res = await fetch(`${API_BASE}/admin/reject/${uid}`, {
+              const res = await fetch(`${API_BASE}/api/admin/reject/${uid}`, {
                   method: 'DELETE',
                   headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
                   body: JSON.stringify({ role })
@@ -663,7 +995,7 @@
           if (!confirm('WARNING: This will permanently delete this user account. Proceed?')) return;
           try {
               const token = await getToken();
-              const res = await fetch(`${API_BASE}/users/${uid}`, {
+              const res = await fetch(`${API_BASE}/api/users/${uid}`, {
                   method: 'DELETE',
                   headers: { 'Authorization': `Bearer ${token}` }
           });

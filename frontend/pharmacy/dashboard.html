@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pharmacy Dispatch — Swasthya Sathi</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            heading: ['Outfit', 'sans-serif'],
+          },
+          animation: {
+            'ping-slow': 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite',
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    .order-card { animation: slideUp 0.4s ease-out; }
+    .glow-red { box-shadow: 0 0 30px rgba(239, 68, 68, 0.12); }
+    .glow-green { box-shadow: 0 0 30px rgba(34, 197, 94, 0.12); }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.12); border-radius: 99px; }
+  </style>
+</head>
+
+<body class="bg-[#09090b] text-gray-100 min-h-screen">
+
+  <!-- ── Top Nav ── -->
+  <nav class="border-b border-white/10 bg-black/40 backdrop-blur-xl sticky top-0 z-50">
+    <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+          <i class="fa-solid fa-staff-snake text-base"></i>
+        </div>
+        <div>
+          <h1 class="font-heading font-bold text-lg leading-none">Pharmacy Dispatch</h1>
+          <p class="text-xs text-gray-500 mt-0.5">Apollo Pharmacy — shop1</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-3">
+        <div id="drone-badge" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gray-800 border border-white/10 text-xs font-medium text-gray-400">
+          <span class="w-2 h-2 rounded-full bg-gray-500"></span>
+          Checking drone...
+        </div>
+        <div id="pending-badge" class="hidden px-3 py-1.5 rounded-full bg-red-500/20 border border-red-500/30 text-xs font-bold text-red-400 items-center gap-2">
+          <i class="fa-solid fa-bell fa-shake"></i>
+          <span id="pending-count">0</span> Pending
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <div class="max-w-6xl mx-auto px-6 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      <!-- ── Emergency Orders Feed ── -->
+      <div class="lg:col-span-2 space-y-4">
+        <div class="flex items-center justify-between mb-2">
+          <h2 class="font-heading font-bold text-xl flex items-center gap-2">
+            <i class="fa-solid fa-bell text-red-500 fa-shake"></i>
+            Emergency Requests
+          </h2>
+          <span class="text-xs text-gray-600 italic">Live — auto-updates</span>
+        </div>
+        <div id="orders-container" class="space-y-4">
+          <div id="orders-loading" class="flex flex-col items-center justify-center py-20 text-gray-600 border border-dashed border-white/10 rounded-3xl">
+            <i class="fa-solid fa-satellite-dish text-4xl mb-4 animate-pulse text-emerald-700"></i>
+            <p class="font-medium">Listening for emergency requests...</p>
+            <p class="text-xs mt-1 text-gray-700">New requests appear here in real-time</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Drone Status Panel ── -->
+      <div class="space-y-4">
+        <h2 class="font-heading font-bold text-xl">Drone Status</h2>
+
+        <div class="bg-white/5 border border-white/10 rounded-3xl p-6">
+          <div class="flex justify-center mb-5">
+            <div class="relative">
+              <div class="absolute inset-0 rounded-full border-2 border-emerald-700/40 animate-ping opacity-30"></div>
+              <img src="https://circuitdigest.com/sites/default/files/projectimage_mic/ESP32-based-LiteWing-Drone.jpg"
+                   alt="LiteWing Drone" class="w-28 h-28 object-cover rounded-full border-4 border-white/10 shadow-2xl relative z-10">
+            </div>
+          </div>
+          <h3 class="text-center font-heading font-bold text-lg">LiteWing Alpha</h3>
+          <p class="text-center text-xs text-gray-500 mb-5 font-mono">IP: <span class="text-emerald-400">10.75.93.203</span></p>
+
+          <div class="space-y-3 text-sm">
+            <div class="flex justify-between py-2 border-b border-white/10">
+              <span class="text-gray-400">Status</span>
+              <span id="drone-status-text" class="font-semibold text-blue-400">Standby at Pad</span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-white/10">
+              <span class="text-gray-400">Battery</span>
+              <span class="font-semibold text-emerald-400">98% <i class="fa-solid fa-battery-full"></i></span>
+            </div>
+            <div class="flex justify-between py-2 border-b border-white/10">
+              <span class="text-gray-400">Motor Speed</span>
+              <span class="font-semibold text-gray-300">35/255 (Demo)</span>
+            </div>
+            <div class="flex justify-between py-2">
+              <span class="text-gray-400">Last Ping</span>
+              <span id="last-ping" class="font-semibold text-gray-400 font-mono text-xs">—</span>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="testDroneSpin()" id="test-spin-btn"
+          class="w-full py-3 px-4 rounded-2xl bg-indigo-600/20 hover:bg-indigo-600/30 border border-indigo-500/30 hover:border-indigo-500/60 text-indigo-400 font-semibold text-sm transition-all flex items-center justify-center gap-2">
+          <i class="fa-solid fa-fan"></i>
+          Test Drone Spin (3 sec)
+        </button>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+            <p class="text-2xl font-heading font-bold text-emerald-400" id="stat-dispatched">0</p>
+            <p class="text-xs text-gray-500 mt-1">Dispatched</p>
+          </div>
+          <div class="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+            <p class="text-2xl font-heading font-bold text-red-400" id="stat-pending">0</p>
+            <p class="text-xs text-gray-500 mt-1">Pending</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
+    <div id="toast-inner" class="px-5 py-3 rounded-2xl text-sm font-semibold shadow-2xl border flex items-center gap-3 min-w-[260px]"></div>
+  </div>
+
+  <!-- Firebase + Logic -->
+  <script type="module">
+    import { auth, db, API_BASE } from '../js/firebase-config.js';
+    import { collection, query, orderBy, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js';
+
+    // ── Toast helper ──
+    function toast(msg, type = 'success') {
+      const t = document.getElementById('toast');
+      const inner = document.getElementById('toast-inner');
+      const styles = {
+        success: 'bg-emerald-950 border-emerald-700 text-emerald-300',
+        error: 'bg-red-950 border-red-700 text-red-300',
+        info: 'bg-blue-950 border-blue-700 text-blue-300',
+      };
+      const icons = { success: 'fa-check-circle', error: 'fa-circle-xmark', info: 'fa-circle-info' };
+      inner.className = `px-5 py-3 rounded-2xl text-sm font-semibold shadow-2xl border flex items-center gap-3 min-w-[260px] ${styles[type]}`;
+      inner.innerHTML = `<i class="fa-solid ${icons[type]}"></i>${msg}`;
+      t.classList.remove('hidden');
+      setTimeout(() => t.classList.add('hidden'), 4000);
+    }
+
+    // ── Escape HTML ──
+    function esc(str) {
+      return String(str ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+
+    // ── Ping drone directly ──
+    async function pingDrone() {
+      const badge = document.getElementById('drone-badge');
+      try {
+        const res = await fetch('http://10.75.93.203/', { signal: AbortSignal.timeout(3000) });
+        const data = await res.json();
+        if (data.status === 'online') {
+          badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span class="text-emerald-400 font-semibold">Drone Online</span>`;
+          badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-xs font-medium';
+          document.getElementById('last-ping').textContent = new Date().toLocaleTimeString();
+        }
+      } catch {
+        badge.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span><span class="text-red-400">Drone Offline</span>`;
+        badge.className = 'flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-500/10 border border-red-500/30 text-xs font-medium';
+      }
+    }
+
+    // ── Test Spin (calls drone directly) ──
+    window.testDroneSpin = async function() {
+      const btn = document.getElementById('test-spin-btn');
+      const orig = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Spinning...';
+      try {
+        const res = await fetch('http://10.75.93.203/spin', { signal: AbortSignal.timeout(8000) });
+        const data = await res.json();
+        toast(`Drone spinning! Speed: ${data.speed}/255 for 3s`, 'success');
+        document.getElementById('drone-status-text').textContent = 'Test Spin Active';
+        document.getElementById('drone-status-text').className = 'font-semibold text-indigo-400';
+        setTimeout(() => {
+          document.getElementById('drone-status-text').textContent = 'Standby at Pad';
+          document.getElementById('drone-status-text').className = 'font-semibold text-blue-400';
+        }, 3500);
+      } catch {
+        toast('Cannot reach drone at 10.75.93.203', 'error');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = orig;
+      }
+    };
+
+    // ── Dispatch Drone (via backend) ──
+    window.dispatchDrone = async function(orderId, btnEl) {
+      btnEl.disabled = true;
+      btnEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Dispatching Drone...';
+      try {
+        const res = await fetch(`${API_BASE}/api/pharmacy/dispatch/${orderId}`, { method: 'POST' });
+        if (res.ok) {
+          toast('Drone dispatched to patient!', 'success');
+          btnEl.outerHTML = `<div class="w-full bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 rounded-xl py-3 font-bold text-sm text-center"><i class="fa-solid fa-check mr-2"></i>Drone Dispatched & Airborne!</div>`;
+          document.getElementById('drone-status-text').textContent = 'In Flight to Patient';
+          document.getElementById('drone-status-text').className = 'font-semibold text-emerald-400';
+          const statusBadge = document.querySelector(`#card-${CSS.escape(orderId)} .status-badge`);
+          if (statusBadge) {
+            statusBadge.textContent = 'dispatched';
+            statusBadge.className = 'status-badge px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+          }
+        } else {
+          const err = await res.json().catch(() => ({}));
+          toast('Dispatch failed: ' + (err.detail || 'Server error'), 'error');
+          btnEl.disabled = false;
+          btnEl.innerHTML = '<i class="fa-solid fa-rocket"></i> Launch Drone';
+        }
+      } catch {
+        toast('Backend unreachable. Is it running?', 'error');
+        btnEl.disabled = false;
+        btnEl.innerHTML = '<i class="fa-solid fa-rocket"></i> Launch Drone';
+      }
+    };
+
+    // ── Render one order card ──
+    function renderCard(id, order) {
+      const isPending = order.status === 'pending';
+      const time = order.timestamp?.toDate
+        ? order.timestamp.toDate().toLocaleString('en-IN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' })
+        : 'Just now';
+      const lat = order.patient_location?.lat?.toFixed(5) ?? '—';
+      const lng = order.patient_location?.lng?.toFixed(5) ?? '—';
+
+      const borderClass = isPending ? 'border-red-500/30 glow-red' : 'border-emerald-500/20 glow-green';
+      const iconClass = isPending ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20';
+      const statusClass = isPending ? 'bg-red-500/20 text-red-400 border-red-500/30' : 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+
+      const actionHtml = isPending
+        ? `<button onclick="dispatchDrone('${id}', this)"
+             class="w-full bg-red-600 hover:bg-red-700 text-white rounded-xl py-3 font-bold text-sm transition-all flex items-center justify-center gap-2 hover:shadow-lg hover:shadow-red-500/20">
+             <i class="fa-solid fa-rocket"></i>
+             Load Meds &amp; Launch Drone to Patient
+           </button>`
+        : `<div class="w-full bg-emerald-600/20 border border-emerald-500/30 text-emerald-400 rounded-xl py-3 font-bold text-sm text-center">
+             <i class="fa-solid fa-check mr-2"></i>Drone Dispatched
+           </div>`;
+
+      return `
+        <div id="card-${id}" class="order-card bg-white/5 border ${borderClass} rounded-3xl p-6 relative overflow-hidden">
+          ${isPending ? '<div class="absolute top-4 right-4 w-3 h-3 rounded-full bg-red-500 animate-pulse"></div>' : ''}
+
+          <div class="flex items-start justify-between mb-4 pr-6">
+            <div class="flex items-start gap-3">
+              <div class="w-11 h-11 rounded-2xl ${iconClass} flex items-center justify-center border shrink-0">
+                <i class="fa-solid fa-heart-pulse"></i>
+              </div>
+              <div>
+                <h3 class="font-heading font-bold text-base">${esc(order.details)}</h3>
+                <p class="text-[11px] text-gray-500 font-mono mt-0.5">${time}</p>
+              </div>
+            </div>
+            <span class="status-badge px-2 py-0.5 rounded-full text-[10px] font-bold border uppercase tracking-widest ${statusClass}">${order.status}</span>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2 mb-4">
+            <div class="bg-black/30 rounded-xl p-3 text-center">
+              <p class="text-[10px] text-gray-600 mb-1">PATIENT</p>
+              <p class="text-xs font-bold font-mono truncate">${esc(order.patient_uid?.slice(0,8) ?? '—')}...</p>
+            </div>
+            <div class="bg-black/30 rounded-xl p-3 text-center">
+              <p class="text-[10px] text-gray-600 mb-1">LAT</p>
+              <p class="text-xs font-bold font-mono">${lat}</p>
+            </div>
+            <div class="bg-black/30 rounded-xl p-3 text-center">
+              <p class="text-[10px] text-gray-600 mb-1">LNG</p>
+              <p class="text-xs font-bold font-mono">${lng}</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 text-xs text-gray-500 mb-4">
+            <i class="fa-solid fa-location-dot text-red-400"></i>
+            <span>${lat}, ${lng}</span>
+            <span class="text-gray-700 mx-1">|</span>
+            <i class="fa-solid fa-store text-emerald-400"></i>
+            <span>${esc(order.pharmacy_id ?? 'shop1')}</span>
+            <span class="text-gray-700 mx-1">|</span>
+            <i class="fa-solid fa-hashtag text-gray-600"></i>
+            <span class="font-mono">${id.slice(0,12)}...</span>
+          </div>
+
+          ${actionHtml}
+        </div>`;
+    }
+
+    // ── Live Firestore listener ──
+    try {
+      const q = query(collection(db, 'emergency_orders'), orderBy('timestamp', 'desc'));
+
+      onSnapshot(q, (snap) => {
+        const container = document.getElementById('orders-container');
+        document.getElementById('orders-loading')?.remove();
+
+        if (snap.empty) {
+          container.innerHTML = `
+            <div class="flex flex-col items-center justify-center py-20 text-gray-600 border border-dashed border-white/10 rounded-3xl">
+              <i class="fa-solid fa-satellite-dish text-4xl mb-4 text-emerald-700 animate-pulse"></i>
+              <p class="font-medium">Listening for emergency requests...</p>
+              <p class="text-xs mt-1 text-gray-700">Requests from patients will appear here instantly</p>
+            </div>`;
+          return;
+        }
+
+        let pending = 0, dispatched = 0;
+        container.innerHTML = '';
+        snap.forEach(d => {
+          container.insertAdjacentHTML('beforeend', renderCard(d.id, d.data()));
+          d.data().status === 'pending' ? pending++ : dispatched++;
+        });
+
+        document.getElementById('stat-pending').textContent = pending;
+        document.getElementById('stat-dispatched').textContent = dispatched;
+
+        if (pending > 0) {
+          const pb = document.getElementById('pending-badge');
+          pb.classList.remove('hidden');
+          pb.classList.add('flex');
+          document.getElementById('pending-count').textContent = pending;
+        } else {
+          document.getElementById('pending-badge').classList.add('hidden');
+          document.getElementById('pending-badge').classList.remove('flex');
+        }
+      }, err => {
+        document.getElementById('orders-container').innerHTML = `
+          <div class="p-6 bg-red-500/10 border border-red-500/30 rounded-2xl text-red-400 text-sm">
+            <i class="fa-solid fa-triangle-exclamation mr-2"></i>Firestore error: ${err.message}
+          </div>`;
+      });
+    } catch(e) {
+      console.error('Snapshot failed:', e);
+    }
+
+    // ── Ping drone every 15s ──
+    pingDrone();
+    setInterval(pingDrone, 15000);
+  </script>
+
+</body>
+</html>

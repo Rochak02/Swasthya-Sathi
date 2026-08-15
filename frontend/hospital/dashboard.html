@@ -83,6 +83,11 @@
             </div>
             <span id="pending-doctors-badge" class="hidden px-2 py-0.5 text-[10px] rounded-full border border-black/20 dark:border-white/20 bg-amber-500/10 text-amber-600">0</span>
           </button>
+          <button id="nav-scanner" class="nav-btn w-full flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold transition-all text-left">
+            <i class="fa-solid fa-wifi text-base w-5"></i>
+            <span>Scanner Hub</span>
+            <span id="scanner-live-dot" class="hidden ml-auto w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          </button>
         </nav>
       </div>
 
@@ -137,8 +142,11 @@
         </div>
 
         <!-- Patient Result Card -->
-        <div id="result-card" class="hidden flat-panel rounded-3xl overflow-hidden">
-          <div class="p-6 border-b border-black/10 dark:border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+         <div id="result-card" class="hidden flat-panel rounded-3xl overflow-hidden relative">
+          <button id="close-result-btn" class="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full bg-black/5 dark:bg-white/5 hover:bg-black/10 dark:hover:bg-white/10 transition-colors text-black/50 dark:text-white/50 hover:text-black dark:hover:text-white" title="Close Profile">
+             <i class="fa-solid fa-xmark"></i>
+          </button>
+          <div class="p-6 border-b border-black/10 dark:border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4 mt-2">
              <div class="flex items-center gap-4">
                 <div id="patient-initials" class="w-14 h-14 rounded-full border border-black/20 dark:border-white/20 flex items-center justify-center font-heading font-bold text-xl bg-black/5 dark:bg-white/5"></div>
                 <div>
@@ -219,7 +227,12 @@
 
         <!-- Recent Visits -->
         <div id="recent-visits-section">
-           <div class="badge-minimal mb-4">Active Visits</div>
+           <div class="flex items-center justify-between mb-4">
+               <div class="badge-minimal">Active Visits</div>
+               <button id="clear-all-visits-btn" class="text-xs font-bold text-red-500 hover:text-red-400 flex items-center gap-1 transition-colors px-3 py-1 rounded-full bg-red-500/10 hover:bg-red-500/20">
+                   <i class="fa-solid fa-trash-can"></i> Clear All
+               </button>
+           </div>
            <div id="recent-visits" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <!-- Populated by JS -->
            </div>
@@ -243,6 +256,53 @@
            <div id="active-doctors-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               <!-- Populated by JS -->
            </div>
+        </div>
+      </div>
+
+      <!-- Tab 3: Scanner Hub -->
+      <div id="tab-scanner" class="tab-content space-y-6">
+        <div>
+          <span class="badge-minimal mb-2 text-[10px]">RFID Integration</span>
+          <h1 class="text-2xl font-extrabold font-heading tracking-tight">Scanner Hub</h1>
+          <p class="text-xs opacity-60 mt-1">Activate your RFID scanner hub and monitor real-time patient check-ins.</p>
+        </div>
+
+        <!-- Hub Activation Card -->
+        <div class="flat-panel rounded-[2rem] p-6 sm:p-8">
+          <h3 class="font-heading font-bold text-lg mb-1 flex items-center gap-2">
+            <i class="fa-solid fa-tower-broadcast text-violet-500"></i> Hub Activation
+          </h3>
+          <p class="text-xs opacity-50 mb-5">Enter the Hub ID printed on the sticker on your ESP32 device. Contact admin if you don't have one.</p>
+          <div id="hub-status-display"></div>
+          <form id="hub-activate-form" class="flex flex-col sm:flex-row gap-4 items-end mt-4">
+            <div class="flex-1">
+              <label class="block text-[10px] font-bold uppercase tracking-wider opacity-70 mb-1.5">Hub ID</label>
+              <input type="text" id="hub-id-input" placeholder="e.g. SS-HUB-0001" class="w-full p-3 rounded-xl bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 text-sm font-mono focus:outline-none focus:border-violet-500/50 transition-colors uppercase" required>
+            </div>
+            <button type="submit" class="px-6 py-3 bg-violet-600 hover:bg-violet-700 text-white rounded-xl text-sm font-bold transition-all flex items-center gap-2 shadow-lg shadow-violet-500/20 whitespace-nowrap">
+              <i class="fa-solid fa-plug"></i> Activate Hub
+            </button>
+          </form>
+          <div id="my-hubs-list" class="mt-5 space-y-3"></div>
+        </div>
+
+        <!-- Real-time Visit Feed -->
+        <div class="flat-panel rounded-[2rem] p-6 sm:p-8">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="font-heading font-bold text-lg flex items-center gap-2">
+              <i class="fa-solid fa-bolt text-amber-500"></i> Live Check-in Feed
+              <span id="live-feed-badge" class="hidden ml-2 px-2 py-0.5 text-[10px] rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 font-bold">LIVE</span>
+            </h3>
+            <a href="visits.html" class="btn-translucent px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2">
+              <i class="fa-solid fa-list"></i> All Visits
+            </a>
+          </div>
+          <div id="live-visit-feed" class="space-y-4">
+            <div class="text-center py-8 opacity-50">
+              <i class="fa-solid fa-wifi text-3xl mb-3 block"></i>
+              <p class="text-sm">Activate a hub to see live check-ins here.</p>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -279,7 +339,7 @@
 
       // Init
       document.addEventListener('DOMContentLoaded', () => {
-          requireRole(['hospital'], (user, userData) => {
+          requireRole(['hospital'], async (user, userData) => {
               currentUser = user;
               currentHospital = userData;
               
@@ -289,13 +349,18 @@
               loadAffiliatedDoctors();
               loadActivePatients();
               setupSearch();
+
+              // Store token for RFID API calls
+              window._hospToken = await getToken();
+              initScannerHub();
           });
       });
 
       function initSidebar() {
           const tabs = [
               { nav: 'nav-registry', content: 'tab-registry', title: 'Patient Registry' },
-              { nav: 'nav-doctors', content: 'tab-doctors', title: 'Doctor Directory' }
+              { nav: 'nav-doctors', content: 'tab-doctors', title: 'Doctor Directory' },
+              { nav: 'nav-scanner', content: 'tab-scanner', title: 'Scanner Hub' }
           ];
 
           tabs.forEach(tab => {
@@ -436,7 +501,11 @@
               recentContainer.innerHTML = '';
 
               const links = [];
-              snapshot.forEach(doc => links.push({id: doc.id, ...doc.data()}));
+              snapshot.forEach(doc => {
+                  if (doc.data().status !== 'revoked') {
+                      links.push({id: doc.id, ...doc.data()});
+                  }
+              });
               links.sort((a,b) => (b.lastUpdated?.toMillis() || 0) - (a.lastUpdated?.toMillis() || 0));
 
               activeCount = links.length;
@@ -453,29 +522,87 @@
                   if(pSnap.exists()) {
                       const pData = pSnap.data();
                       
-                      let statusText = 'Unknown';
-                      if(link.status === 'scoped') statusText = 'Scoped Access';
-                      else if(link.status === 'global') statusText = 'Global Access';
-                      else if(link.status === 'pending_global') statusText = 'Pending Global';
-                      else if(link.status === 'revoked') continue;
+                      if(link.status === 'revoked') continue;
 
                       const card = document.createElement('div');
-                      card.className = 'flat-panel flat-panel-hover rounded-2xl p-5 cursor-pointer transition-transform';
-                      card.onclick = () => {
-                          document.getElementById('patient-search').value = link.patientId;
-                          document.getElementById('search-form').dispatchEvent(new Event('submit'));
-                      };
+                      card.className = 'flat-panel rounded-2xl p-5 relative transition-transform';
                       
-                      card.innerHTML = `
-                          <div class="flex justify-between items-start mb-3">
-                              <h4 class="font-heading font-bold text-sm truncate">${pData.personalInfo?.name || 'Unknown'}</h4>
-                              <span class="badge-minimal py-0.5 px-2 text-[10px]">${statusText}</span>
-                          </div>
-                          <div class="text-xs font-mono opacity-70 mb-2">${link.patientId}</div>
-                          <div class="text-xs opacity-50">Assigned: Dr. ${affiliatedDoctors.find(d => d.id === link.doctorId)?.name || 'Unknown'}</div>
-                      `;
+                      if(!link.doctorId) {
+                          // Render "Needs Assignment" state
+                          card.classList.add('border-yellow-500/50', 'bg-yellow-500/5');
+                          card.innerHTML = `
+                              <button class="absolute top-3 right-3 w-7 h-7 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-full flex items-center justify-center transition-colors clear-visit-btn" title="Dismiss Visit">
+                                  <i class="fa-solid fa-xmark text-xs"></i>
+                              </button>
+                              <div class="flex justify-between items-start mb-3 pr-8">
+                                  <h4 class="font-heading font-bold text-sm truncate">${pData.personalInfo?.name || 'Unknown'}</h4>
+                                  <span class="badge-minimal py-0.5 px-2 text-[10px] bg-yellow-500/10 text-yellow-600 border-yellow-500/20">Pending Assignment</span>
+                              </div>
+                              <div class="text-xs font-mono opacity-70 mb-4">${link.patientId}</div>
+                              <button class="w-full py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-colors assign-now-btn">
+                                  <i class="fa-solid fa-user-doctor mr-1"></i> Assign Doctor Now
+                              </button>
+                          `;
+                          
+                          card.querySelector('.assign-now-btn').onclick = () => {
+                              // We need a dummy visitData object with the necessary fields for the modal
+                              const vDummy = {
+                                  patient_name: pData.personalInfo?.name || 'Unknown',
+                                  health_id: link.patientId
+                              };
+                              window.openDoctorAssignmentModal(vDummy);
+                          };
+                      } else {
+                          // Render normal assigned state
+                          let statusText = 'Unknown';
+                          if(link.status === 'scoped') statusText = 'Scoped Access';
+                          else if(link.status === 'global') statusText = 'Global Access';
+                          else if(link.status === 'pending_global') statusText = 'Pending Global';
+                          
+                          card.innerHTML = `
+                              <button class="absolute top-3 right-3 w-7 h-7 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white rounded-full flex items-center justify-center transition-colors clear-visit-btn" title="Dismiss Visit">
+                                  <i class="fa-solid fa-xmark text-xs"></i>
+                              </button>
+                              <div class="cursor-pointer" onclick="document.getElementById('patient-search').value = '${link.patientId}'; document.getElementById('search-form').dispatchEvent(new Event('submit'));">
+                                  <div class="flex justify-between items-start mb-3 pr-8">
+                                      <h4 class="font-heading font-bold text-sm truncate">${pData.personalInfo?.name || 'Unknown'}</h4>
+                                      <span class="badge-minimal py-0.5 px-2 text-[10px]">${statusText}</span>
+                                  </div>
+                                  <div class="text-xs font-mono opacity-70 mb-2">${link.patientId}</div>
+                                  <div class="text-xs opacity-50">Assigned: Dr. ${affiliatedDoctors.find(d => d.id === link.doctorId)?.name || 'Unknown'}</div>
+                              </div>
+                          `;
+                      }
+                      
+                      card.querySelector('.clear-visit-btn').onclick = async (e) => {
+                          e.stopPropagation();
+                          try {
+                              await updateDoc(doc(db, 'accessLinks', link.id), { status: 'revoked', lastUpdated: serverTimestamp() });
+                              toast('Patient dismissed from active visits.', 'info');
+                          } catch(err) {
+                              toast('Error dismissing visit', 'error');
+                          }
+                      };
                       recentContainer.appendChild(card);
                   }
+              }
+          });
+
+          // Handle Clear All Button
+          document.getElementById('clear-all-visits-btn').addEventListener('click', async () => {
+              if(!confirm('Dismiss all active visits?')) return;
+              try {
+                  const snap = await getDocs(q);
+                  const batch = [];
+                  snap.forEach(docSnap => {
+                      if (docSnap.data().status !== 'revoked') {
+                          batch.push(updateDoc(doc(db, 'accessLinks', docSnap.id), { status: 'revoked', lastUpdated: serverTimestamp() }));
+                      }
+                  });
+                  await Promise.all(batch);
+                  toast(`Dismissed ${batch.length} visits.`, 'info');
+              } catch(err) {
+                  toast('Error dismissing visits', 'error');
               }
           });
       }
@@ -532,9 +659,19 @@
               setLoading(document.getElementById('initiate-btn'), true);
               try {
                   const linkId = `${currentUser.uid}_${searchedPatientId}`;
+                  // Look up patient name for display in patient's Access Control
+                  let patientName = 'Unknown Patient';
+                  try {
+                      const patSnap = await getDoc(doc(db, 'patients', searchedPatientId));
+                      if (patSnap.exists()) patientName = patSnap.data().personalInfo?.name || 'Unknown Patient';
+                  } catch(_) {}
+
                   await setDoc(doc(db, 'accessLinks', linkId), {
                       hospitalId: currentUser.uid,
+                      hospitalName: currentHospital.name || 'Hospital',
                       patientId: searchedPatientId,
+                      healthId: searchedPatientId, // duplicate for patient-side query compatibility
+                      patientName: patientName,
                       doctorId: doctorId,
                       status: 'scoped',
                       createdAt: serverTimestamp(),
@@ -547,6 +684,13 @@
               } finally {
                   setLoading(document.getElementById('initiate-btn'), false, 'Initiate Visit & Assign');
               }
+          });
+
+          document.getElementById('close-result-btn').addEventListener('click', () => {
+              document.getElementById('result-card').classList.add('hidden');
+              document.getElementById('patient-search').value = '';
+              searchedPatientId = null;
+              activePatientLink = null;
           });
 
           document.getElementById('req-global-btn').addEventListener('click', async () => {
@@ -661,7 +805,7 @@
               desc.textContent = 'You can upload records and view data created during this visit.';
               reqBtn.classList.remove('hidden');
           } 
-          else if(link.status === 'global') {
+          else if(link.status === 'global' || link.status === 'active_global') {
               banner.classList.add('bg-green-500/10', 'border-green-500/30');
               icon.classList.add('bg-green-500/20', 'text-green-600', 'dark:text-green-400');
               icon.innerHTML = '<i class="fas fa-globe"></i>';
@@ -677,6 +821,279 @@
           }
       }
 
+      // ── Scanner Hub ───────────────────────────────────────────────────────
+      const HUB_API = 'http://localhost:8000';
+      let _visitUnsubscribe = null;
+
+      async function initScannerHub() {
+          await loadMyHubs();
+          setupHubActivationForm();
+          startLiveFeed();
+      }
+
+      async function loadMyHubs() {
+          const container = document.getElementById('my-hubs-list');
+          if (!container) return;
+          try {
+              const res = await fetch(`${HUB_API}/api/hubs/my`, { headers: { Authorization: `Bearer ${window._hospToken}` } });
+              const data = await res.json();
+              if (!data.hubs || data.hubs.length === 0) {
+                  container.innerHTML = '<p class="text-xs opacity-50 mt-2">No hubs assigned yet. Contact admin to get a hub assigned.</p>';
+                  return;
+              }
+              container.innerHTML = data.hubs.map(h => {
+                  const statusCls = h.status === 'active'
+                      ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20'
+                      : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
+                  const lastSeen = h.last_seen ? new Date(h.last_seen).toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) : 'Never';
+                  return `
+                      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 border border-black/10 dark:border-white/10 rounded-2xl bg-black/3 dark:bg-white/3">
+                          <div class="flex items-center gap-3">
+                              <div class="w-9 h-9 rounded-xl bg-violet-500/10 border border-violet-500/20 flex items-center justify-center flex-shrink-0">
+                                  <i class="fa-solid fa-microchip text-violet-500 text-sm"></i>
+                              </div>
+                              <div>
+                                  <p class="font-mono font-bold text-sm">${h.hub_id}</p>
+                                  <p class="text-xs opacity-50">Last seen: ${lastSeen} · FW: ${h.firmware_version || '—'}</p>
+                              </div>
+                          </div>
+                          <span class="text-[10px] font-bold px-2.5 py-1 rounded-full border ${statusCls}">${h.status}</span>
+                      </div>
+                  `;
+              }).join('');
+
+              // Show live dot if any hub is active
+              if (data.hubs.some(h => h.status === 'active')) {
+                  document.getElementById('scanner-live-dot')?.classList.remove('hidden');
+                  document.getElementById('live-feed-badge')?.classList.remove('hidden');
+              }
+          } catch(e) { console.error('loadMyHubs:', e); }
+      }
+
+      function setupHubActivationForm() {
+          const form = document.getElementById('hub-activate-form');
+          if (!form) return;
+          form.addEventListener('submit', async (e) => {
+              e.preventDefault();
+              const hub_id = document.getElementById('hub-id-input').value.trim().toUpperCase();
+              if (!hub_id) { toast('Enter Hub ID', 'error'); return; }
+              const btn = form.querySelector('button[type=submit]');
+              const orig = btn.innerHTML;
+              btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Activating...';
+              btn.disabled = true;
+              try {
+                  const res = await fetch(`${HUB_API}/api/hubs/${hub_id}/activate`, {
+                      method: 'PUT',
+                      headers: { Authorization: `Bearer ${window._hospToken}` }
+                  });
+                  const d = await res.json();
+                  if (res.ok) {
+                      toast(`✅ Hub ${hub_id} is now live!`, 'success');
+                      form.reset();
+                      await loadMyHubs();
+                      document.getElementById('scanner-live-dot')?.classList.remove('hidden');
+                      document.getElementById('live-feed-badge')?.classList.remove('hidden');
+                  } else { toast(`❌ ${d.detail}`, 'error'); }
+              } finally { btn.innerHTML = orig; btn.disabled = false; }
+          });
+      }
+
+      function startLiveFeed() {
+          if (!currentUser) return;
+          const feedContainer = document.getElementById('live-visit-feed');
+          if (!feedContainer) return;
+
+          // Subscribe to Firestore visits for this hospital, ordered by last scan, limit 20
+          const { query: q, where: w, orderBy: ob, limit: lim, collection: col, onSnapshot: snap } = { query, where, orderBy, limit, collection, onSnapshot };
+
+          let firstLoad = true;
+          const visitsQ = q(
+              col(db, 'visits'),
+              w('hospital_uid', '==', currentUser.uid),
+              ob('last_scan_at', 'desc'),
+              lim(20)
+          );
+
+          if (_visitUnsubscribe) _visitUnsubscribe();
+          _visitUnsubscribe = onSnapshot(visitsQ, (snapshot) => {
+              if (snapshot.empty) {
+                  feedContainer.innerHTML = '<div class="text-center py-8 opacity-50"><i class="fa-solid fa-wifi text-3xl mb-3 block"></i><p class="text-sm">No visits yet. Waiting for patients to scan...</p></div>';
+                  firstLoad = false;
+                  return;
+              }
+
+              // On subsequent updates, check if they need a doctor assigned
+              if (!firstLoad) {
+                  snapshot.docChanges().forEach(async change => {
+                      if (change.type === 'added' || change.type === 'modified') {
+                          const v = change.doc.data();
+                          
+                          // Check if they need a doctor assignment
+                          const linkId = `${currentUser.uid}_${v.health_id}`;
+                          const linkSnap = await getDoc(doc(db, 'accessLinks', linkId));
+                          
+                          let needsDoctor = false;
+                          if (!linkSnap.exists()) {
+                              needsDoctor = true;
+                          } else {
+                              const lData = linkSnap.data();
+                              if (!lData.doctorId) {
+                                  needsDoctor = true;
+                              }
+                          }
+                          
+                          if (needsDoctor) {
+                              toast(`🏥 Action Required: Assign doctor to ${v.patient_name}`, 'info');
+                              document.getElementById('nav-registry')?.click();
+                              openDoctorAssignmentModal(v);
+                          }
+                      }
+                  });
+              }
+              firstLoad = false;
+
+              const statusColors = {
+                  open: 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20',
+                  billed: 'bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20',
+                  discharged: 'bg-gray-500/10 text-gray-500 border-gray-500/20',
+                  cancelled: 'bg-red-500/10 text-red-600 dark:text-red-400 border-red-500/20'
+              };
+
+              feedContainer.innerHTML = snapshot.docs.map(d => {
+                  const v = d.data();
+                  const scanTime = v.last_scan_at?.toDate?.().toLocaleString('en-IN',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}) || '—';
+                  const checkIn = v.check_in_at?.toDate?.().toLocaleString('en-IN',{day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'}) || '—';
+                  const cls = statusColors[v.status] || 'bg-gray-500/10 text-gray-500 border-gray-500/20';
+                  return `
+                      <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 border border-black/10 dark:border-white/10 rounded-2xl hover:bg-black/3 dark:hover:bg-white/3 transition-colors">
+                          <div class="flex items-center gap-4">
+                              <div class="w-10 h-10 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center font-bold text-sm flex-shrink-0 text-blue-600 dark:text-blue-400">
+                                  ${v.patient_name?.[0] || '?'}
+                              </div>
+                              <div>
+                                  <p class="font-bold text-sm">${v.patient_name || '—'}</p>
+                                  <p class="text-xs opacity-60 font-mono">${v.health_id || '—'} · Scans: ${v.scans?.length || 0}</p>
+                                  <p class="text-xs opacity-50">Checked in: ${checkIn}</p>
+                              </div>
+                          </div>
+                          <div class="flex items-center gap-3">
+                              <span class="text-[10px] font-bold px-2.5 py-1 rounded-full border ${cls}">${v.status}</span>
+                              <a href="visits.html?visit=${d.id}" class="px-3 py-1.5 bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl text-xs font-bold hover:bg-black/10 dark:hover:bg-white/10 transition-colors">
+                                  Open <i class="fa-solid fa-arrow-right ml-1 text-[10px]"></i>
+                              </a>
+                          </div>
+                      </div>
+                  `;
+              }).join('');
+          }, (err) => {
+              console.error('Visit feed error:', err);
+          });
+      }
+
+      // ── Doctor Assignment Modal Logic ──
+      window.openDoctorAssignmentModal = function(visitData) {
+          const modal = document.getElementById('doctor-assign-modal');
+          const pName = document.getElementById('assign-patient-name');
+          const pId = document.getElementById('assign-patient-id');
+          const select = document.getElementById('assign-doctor-select');
+          
+          pName.textContent = visitData.patient_name || 'Unknown Patient';
+          pId.textContent = visitData.health_id || '—';
+          
+          // Populate doctors
+          select.innerHTML = '<option value="">-- Select a Doctor --</option>' + 
+              affiliatedDoctors.map(d => `<option value="${d.id}">Dr. ${d.name}</option>`).join('');
+              
+          // Show modal
+          modal.classList.remove('hidden');
+          modal.classList.add('flex');
+          
+          // Handle submit
+          const btn = document.getElementById('assign-doctor-btn');
+          const cancelBtn = document.getElementById('cancel-assign-btn');
+          
+          const cleanup = () => {
+              modal.classList.add('hidden');
+              modal.classList.remove('flex');
+              btn.onclick = null;
+              cancelBtn.onclick = null;
+          };
+          
+          cancelBtn.onclick = cleanup;
+          
+          btn.onclick = async () => {
+              const docId = select.value;
+              if(!docId) { toast('Please select a doctor to assign', 'error'); return; }
+              
+              const linkId = `${currentUser.uid}_${visitData.health_id}`;
+              try {
+                  btn.disabled = true;
+                  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Assigning...';
+                  
+                  // Update the access link with the chosen doctor
+                  await setDoc(doc(db, 'accessLinks', linkId), {
+                      hospitalId: currentUser.uid,
+                      hospitalName: currentUser.displayName || 'Unknown Hospital',
+                      patientId: visitData.health_id,
+                      healthId: visitData.health_id,
+                      patientName: visitData.patient_name,
+                      doctorId: docId,
+                      status: 'scoped',
+                      lastUpdated: serverTimestamp()
+                  }, { merge: true });
+                  
+                  toast(`Assigned Dr. ${affiliatedDoctors.find(d=>d.id===docId)?.name} to ${visitData.patient_name}`, 'success');
+                  cleanup();
+                  
+                  // Now auto-open the patient profile
+                  const searchInput = document.getElementById('patient-search');
+                  const searchForm = document.getElementById('search-form');
+                  if (searchInput && searchForm) {
+                      searchInput.value = visitData.health_id;
+                      searchForm.dispatchEvent(new Event('submit'));
+                  }
+              } catch(err) {
+                  console.error(err);
+                  toast('Failed to assign doctor', 'error');
+              } finally {
+                  btn.disabled = false;
+                  btn.innerHTML = 'Assign & Admit';
+              }
+          };
+      };
+
   </script>
+
+  <!-- Doctor Assignment Modal -->
+  <div id="doctor-assign-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+    <div class="bg-white dark:bg-zinc-900 border border-black/10 dark:border-white/10 p-6 rounded-3xl w-full max-w-md shadow-2xl relative animate-[slideUp_0.3s_ease-out]">
+      <div class="w-12 h-12 bg-indigo-500/10 text-indigo-500 rounded-2xl flex items-center justify-center text-xl mb-4">
+        <i class="fa-solid fa-user-doctor"></i>
+      </div>
+      <h3 class="text-xl font-heading font-extrabold mb-1">Assign Doctor</h3>
+      <p class="text-sm opacity-70 mb-6">Patient just scanned in. Please assign a doctor for this visit.</p>
+      
+      <div class="p-4 bg-black/5 dark:bg-white/5 rounded-2xl mb-6">
+        <p class="font-bold text-sm" id="assign-patient-name">Patient Name</p>
+        <p class="font-mono text-xs opacity-60" id="assign-patient-id">DHI-XXXX-XXXX</p>
+      </div>
+
+      <div class="mb-6">
+        <label class="block text-xs font-bold uppercase tracking-wider opacity-70 mb-2">Select Doctor</label>
+        <select id="assign-doctor-select" class="w-full bg-black/5 dark:bg-white/5 border border-black/10 dark:border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-indigo-500 appearance-none cursor-pointer">
+          <!-- Populated dynamically -->
+        </select>
+      </div>
+
+      <div class="flex gap-3">
+        <button id="cancel-assign-btn" class="flex-1 py-3 px-4 rounded-xl border border-black/10 dark:border-white/10 text-sm font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+          Cancel
+        </button>
+        <button id="assign-doctor-btn" class="flex-[2] bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-xl text-sm font-bold transition-colors shadow-lg shadow-indigo-500/20">
+          Assign & Admit
+        </button>
+      </div>
+    </div>
+  </div>
 </body>
 </html>

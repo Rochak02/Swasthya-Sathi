@@ -21,7 +21,7 @@
 - [What We Are Building](#-what-we-are-building)
 - [Project Structure](#-project-structure)
 - [User Roles & Dashboards](#-user-roles--dashboards)
-- [Tech Stack](#-tech-stack)
+- [Tech Stack & Architecture](ARCHITECTURE.md)
 - [Frontend Setup](#-frontend-setup)
 - [Roadmap](#-roadmap)
 - [Contributing](#-contributing)
@@ -97,6 +97,8 @@ Swasthya_sathi/
 │   │   ├── lab.html                 # Lab registration form
 │   │   └── advertiser.html          # Advertiser account setup
 │   │
+│   ├── 📂 pharmacy/                 # Pharmacy portal
+│   │   └── dashboard.html           # Pharmacy management
 │   ├── 📂 css/
 │   │   └── custom.css               # Global custom styles & design tokens
 │   │
@@ -110,13 +112,18 @@ Swasthya_sathi/
 │   │   └── supabase-config.js       # Ad storage layer (local-first fallback)
 │   │
 │   └── 📂 assets/                   # Static images & media
-│       ├── hand_sathi.jpg
-│       ├── hand_swasthya.jpg
-│       ├── sathi_hand_3d.jpg
-│       └── swasthya_hand_3d.jpg
+│
+├── 📂 hardware/                     # Drone demo & firmware files
+│   ├── 📂 drone_demo/
+│   └── 📂 firmware/
 │
 ├── 📂 backend/                      # NOT pushed yet — coming in Phase 2
 │   └── (FastAPI server, Firebase Admin, AI models)
+│
+├── 📂 scripts/                      # Utility and deployment scripts
+│   ├── deploy_rules.py
+│   ├── fix_appointment.py
+│   └── setup_hospital_doctor.py
 │
 ├── 📄 .gitignore
 └── 📄 README.md
@@ -165,9 +172,9 @@ The heart of the platform. Each patient gets a **personal health record (PHR/EHR
 
 ---
 
-## 🛠️ Tech Stack
+## 🛠️ Tech Stack & Architecture
 
-### Frontend
+> 📖 For an in-depth breakdown of the technical design, data flows, and security model, view the full [**ARCHITECTURE.md**](ARCHITECTURE.md) document.
 | Technology | Purpose |
 |---|---|
 | **HTML5 / CSS3 / JavaScript** | Core structure, style, and logic |
