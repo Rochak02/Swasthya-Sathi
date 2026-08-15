@@ -12,6 +12,8 @@ frontend/js/supabase-config.js
 
 
 # ── Backend (pushed separately) ────────────────────────────────────────────────
+backend/venv/
+backend/__pycache__/
 
 # ── OS / Editor ────────────────────────────────────────────────────────────────
 .DS_Store
