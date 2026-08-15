@@ -1,5 +1,7 @@
 <div align="center">
 
+![Swasthya Sathi Banner](frontend/assets/banner.png)
+
 <img src="https://img.shields.io/badge/Status-Active%20Development-brightgreen?style=for-the-badge" />
 <img src="https://img.shields.io/badge/Frontend-HTML%20%7C%20CSS%20%7C%20JS-blue?style=for-the-badge" />
 <img src="https://img.shields.io/badge/Auth-Firebase-orange?style=for-the-badge" />
@@ -112,6 +114,7 @@ Swasthya_sathi/
 │   │   └── supabase-config.js       # Ad storage layer (local-first fallback)
 │   │
 │   └── 📂 assets/                   # Static images & media
+│       └── banner.png               # Repository hero banner
 │
 ├── 📂 hardware/                     # Drone demo & firmware files
 │   ├── 📂 drone_demo/
